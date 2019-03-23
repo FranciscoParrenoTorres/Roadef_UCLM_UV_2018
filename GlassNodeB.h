@@ -11,8 +11,8 @@
 class GlassNodeB {
 public:
 	GlassNodeB();
-	GlassNodeB(unsigned int Inicio, unsigned int Plates, unsigned int Total_area,	unsigned int Total_area_used,unsigned int Total_width_bin,	unsigned int Objective_function,
-	unsigned int Partial_objective_function,	unsigned int MinDimensionPieza, std::vector< std::vector < int > > Matrix_Items,	std::vector< int > Vector_Stacks,
+	GlassNodeB(int  Inicio, int  Plates, int  Total_area,	int  Total_area_used,int  Total_width_bin,	int  Objective_function,
+	int  Partial_objective_function,	int  MinDimensionPieza, std::vector< std::vector < int > > Matrix_Items,	std::vector< int > Vector_Stacks,
 	std::vector< bool > Vector_Items,	std::list< GlassRsol> Sol_Items);
 	virtual ~GlassNodeB();
 	double Utilization() {
@@ -21,40 +21,40 @@ public:
 	double Utilization2() {
 		return _Utilization2;
 	};
-	unsigned int Inicio() {
+	int  Inicio() {
 		return _Inicio;
 	};
-	unsigned int Plates() {
+	int  Plates() {
 		return _Plates;
 	};
-	unsigned int Total_area() {
+	int  Total_area() {
 		return _Total_area;
 	}; // Sum of total area of items.
-	unsigned int Total_area_used()
+	int  Total_area_used()
 	{
 		return _Total_area_used;
 	};//Suma of used area partial
-	unsigned int Total_width_bin()
+	int  Total_width_bin()
 	{
 		return _Total_width_bin;
 	};
-	unsigned int Max_First_Bin()
+	int  Max_First_Bin()
 	{
 		return _Max_First_Bin;
 	};
-	unsigned int Objective_function()
+	int  Objective_function()
 	{
 		return _Objective_function;
 	};
-	unsigned int Partial_objective_function()
+	int  Partial_objective_function()
 	{
 		return _Partial_objective_function;
 	};// Percentaje per thousand
-	unsigned int MinDimensionPieza()
+	int  MinDimensionPieza()
 	{
 		return _MinDimensionPieza;
 	};
-	unsigned int MaxMinDimensionPieza()
+	int  MaxMinDimensionPieza()
 	{
 		return _MaxMinDimensionPieza;
 	};
@@ -75,30 +75,30 @@ public:
 		return _Sol_Items;
 	};
 	//set functions
-	void Inicio(unsigned int a)
+	void Inicio(int  a)
 	{
 		_Inicio = a;
 	};
-	void Plates(unsigned int a)
+	void Plates(int  a)
 	{
 		_Plates = a;
 	};
-	void Total_area(unsigned int a) {
+	void Total_area(int  a) {
 		_Total_area=a;
 	}; // Sum of total area of items.
-	void Total_area_used(unsigned int a)
+	void Total_area_used(int  a)
 	{
 		_Total_area_used=a;
 	};//Suma of used area partial
-	void Total_width_bin(unsigned int a)
+	void Total_width_bin(int  a)
 	{
 		_Total_width_bin=a;
 	};
-	void Max_First_Bin(unsigned int a)
+	void Max_First_Bin(int  a)
 	{
 		_Max_First_Bin = a;
 	};
-	void Objective_function(unsigned int a)
+	void Objective_function(int  a)
 	{
 		_Objective_function=a;
 	};
@@ -110,15 +110,15 @@ public:
 	{
 		_Utilization2 = a;
 	};
-	void Partial_objective_function(unsigned int a)
+	void Partial_objective_function(int  a)
 	{
 		_Partial_objective_function=a;
 	};// Percentaje per thousand
-	void MinDimensionPieza(unsigned int a)
+	void MinDimensionPieza(int  a)
 	{
 		_MinDimensionPieza=a;
 	};
-	void MaxMinDimensionPieza(unsigned int a)
+	void MaxMinDimensionPieza(int  a)
 	{
 		_MaxMinDimensionPieza = a;
 	};
@@ -149,16 +149,16 @@ protected:
 private:
 	double _Utilization;
 	double _Utilization2=0;
-	unsigned int _Inicio;
-	unsigned int _Plates;
-	unsigned int _Total_area; // Sum of total area of items.
-	unsigned int _Total_area_used;//Suma of used area partial
-	unsigned int _Total_width_bin;
-	unsigned int _Max_First_Bin=0;
-	unsigned int _Objective_function;
-	unsigned int _Partial_objective_function;// Percentaje per thousand
-	unsigned int _MinDimensionPieza;
-	unsigned int _MaxMinDimensionPieza;
+	int  _Inicio;
+	int  _Plates;
+	int  _Total_area; // Sum of total area of items.
+	int  _Total_area_used;//Suma of used area partial
+	int  _Total_width_bin;
+	int  _Max_First_Bin=0;
+	int  _Objective_function;
+	int  _Partial_objective_function;// Percentaje per thousand
+	int  _MinDimensionPieza;
+	int  _MaxMinDimensionPieza;
 	std::vector< std::vector < int > > _Matrix_Items;
 	// the size of this vector is the number of stacks, the first number is 
 	//which is the first item possible to place

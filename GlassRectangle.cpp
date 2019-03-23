@@ -170,14 +170,14 @@ void GlassRectangle::ChangeDimensionsNextDefect()
 	{
 		if (Intox == true && (*it).Getpos_x() == rectangle_minx_defect)
 		{
-			unsigned int prev_x = rectangle_x;
+			int  prev_x = rectangle_x;
 			rectangle_x = (*it).Getpos_x() + (*it).Getwidth();
 			rectangle_w = rectangle_w - (rectangle_x-prev_x);
 			cont_max = cont;
 		}
 		if (Intox == false && (*it).Getpos_y() == rectangle_miny_defect)
 		{
-			unsigned int prev_y = rectangle_y;
+			int  prev_y = rectangle_y;
 			rectangle_y = (*it).Getpos_y() + (*it).Getheight();
 			rectangle_h = rectangle_h - (rectangle_y - prev_y);
 			cont_max = cont;
@@ -516,7 +516,7 @@ bool GlassRectangle::FindTheFollowingDefect(int x, int type)
 }
 bool GlassRectangle::EverythingOK(int a)
 {
-	if (m_Glass->active_log == false)	return false;
+	if (m_Glass->active_log_error == false)	return false;
 	bool wrong = false;
 	if ((max(rectangle_x, pos_x) + rectangle_w > m_Glass->plate_w))
 		wrong = true;
@@ -530,6 +530,8 @@ bool GlassRectangle::EverythingOK(int a)
 		wrong = true;
 	if (wrong == true)
 	{
+		printf("Algo mal en el rectángulo x %d y %d pos_x %d pos_y %d w %d h %d  R_w %d R_h %d IterVeces %d GlobalIter %d\n", rectangle_x, rectangle_y, pos_x, pos_y, rectangle_w, rectangle_h, R_w, R_h, m_Glass->G_iter_veces, m_Glass->m_id);
+		return true;
 		if (m_Glass->active_log_error)
 		{
 			printf("Algo mal en el rectángulo x %d y %d pos_x %d pos_y %d w %d h %d  R_w %d R_h %d IterVeces %d GlobalIter %d\n", rectangle_x, rectangle_y, pos_x, pos_y, rectangle_w, rectangle_h, R_w, R_h, m_Glass->G_iter_veces, m_Glass->m_id);
@@ -552,8 +554,8 @@ bool GlassRectangle::ChangePositionToPlaceNearest(int type)
 		if ((*it).GetUsedx() == true && (*it).GetUsedy() == true)
 			continue;
 		//get_random(0,3)!=1
-		if ((m_Glass->deterministic==false && ((*it).Getpos_x() - rectangle_x) <= (((*it).Getpos_y() - rectangle_y) + m_Glass->get_random(0,400)- m_Glass->get_random(0,400))) ||
-		(m_Glass->deterministic==true && ((*it).Getpos_x() - rectangle_x) <= (((*it).Getpos_y() - rectangle_y) )))
+		if ((m_Glass->deterministic==false && (((*it).Getpos_x() - rectangle_x) <= (((*it).Getpos_y() - rectangle_y) + m_Glass->get_random(0,400)- m_Glass->get_random(0,400)))) ||
+		(m_Glass->deterministic==true && (((*it).Getpos_x() - rectangle_x) <= (((*it).Getpos_y() - rectangle_y) ))))
 //		if (((*it).Getpos_x() - rectangle_x) <= (((*it).Getpos_y() - rectangle_y))) //V4
 		{
 			if ((*it).GetUsedx() == false)
@@ -687,6 +689,7 @@ bool GlassRectangle::ChangePositionToPlaceNearest(int type)
 			}
 		}
 	}
+	return false;
 
 }
 //Change the position where can be a rectangle

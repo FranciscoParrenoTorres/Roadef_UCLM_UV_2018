@@ -9,32 +9,32 @@
 class GlassNode {
 public:
 	GlassNode();
-	GlassNode(unsigned int plate, unsigned int node, unsigned int x,
-		unsigned int y, unsigned int w, unsigned int h,
-		int t, unsigned int c, unsigned int p, unsigned int *c_array, unsigned int n);
+	GlassNode(int  plate, int  node, int  x,
+		int  y, int  w, int  h,
+		int t, int  c, int  p, int  *c_array, int  n);
 	virtual ~GlassNode();
 
-	unsigned int plateId() {
+	int  plateId() {
 		return _plateId;
 	}
 
-	unsigned int id() {
+	int  id() {
 		return _id;
 	}
 
-	unsigned int x() {
+	int  x() {
 		return _x;
 	}
 
-	unsigned int y() {
+	int  y() {
 		return _y;
 	}
 
-	unsigned int w() {
+	int  w() {
 		return _w;
 	}
 
-	unsigned int h() {
+	int  h() {
 		return _h;
 	}
 
@@ -42,43 +42,43 @@ public:
 		return _nodeType;
 	}
 
-	unsigned int Getcut() {
+	int  Getcut() {
 		return cut;
 	}
 
-	unsigned int Getparent() {
+	int  Getparent() {
 		return parent;
 	}
 
-	unsigned int Getsuccessor_nbr() {
+	int  Getsuccessor_nbr() {
 		return successor_nbr;
 	}
 
-	GlassNode Getsuccessor(unsigned int idx) {
+	GlassNode Getsuccessor(int  idx) {
 		return successor[idx];
 	}
 
-	void plateId(unsigned int id) {
+	void plateId(int  id) {
 		_plateId = id;
 	}
 
-	void Setnode_id(unsigned int id) {
+	void Setnode_id(int  id) {
 		_id = id;
 	}
 
-	void x(unsigned int x) {
+	void x(int  x) {
 		_x = x;
 	}
 
-	void y(unsigned int y) {
+	void y(int  y) {
 		_y = y;
 	}
 
-	void w(unsigned int w) {
+	void w(int  w) {
 		_w = w;
 	}
 
-	void h(unsigned int h) {
+	void h(int  h) {
 		_h = h;
 	}
 
@@ -86,19 +86,19 @@ public:
 		_nodeType = t;
 	}
 
-	void Setcut(unsigned int c) {
+	void Setcut(int  c) {
 		cut = c;
 	}
 
-	void Setparent(unsigned int p) {
+	void Setparent(int  p) {
 		parent = p;
 	}
 
-	void Setchild_nbr(unsigned int nbr) {
+	void Setchild_nbr(int  nbr) {
 		successor_nbr = nbr;
 	}
 
-	unsigned int Setsuccessor(GlassNode c) {
+	int  Setsuccessor(GlassNode c) {
 		if (successor_nbr >= 2 && cut > 2) {
 			return 1;
 		}
@@ -116,21 +116,21 @@ public:
 	GlassNode * successor; // Successor nodes list.
 protected:
 private:
-	unsigned int _plateId; // Plate Id.
-	unsigned int _id; // Node Id.
-	unsigned int _x; // x position.
-	unsigned int _y; // y position.
-	unsigned int _w; // Plate's width.
-	unsigned int _h; // Plate's height.
+	int  _plateId; // Plate Id.
+	int  _id; // Node Id.
+	int  _x; // x position.
+	int  _y; // y position.
+	int  _w; // Plate's width.
+	int  _h; // Plate's height.
 	int _nodeType; /* node type
 				   * > 0 glass piece index in batch file.
 				   * = -1 wasted glass.
 				   * = -2 branch.
 				   * = -3 residual.
 				   */
-	unsigned int cut; // cut G_level (there are 1, 2, 3 and 4-cut G_level, could not be 0-cut because GlassNode class instance can't be an entire plate).
-	unsigned int parent; // parent node Id.
-	unsigned int successor_nbr; // number of G_children for this node instance.
+	int  cut; // cut G_level (there are 1, 2, 3 and 4-cut G_level, could not be 0-cut because GlassNode class instance can't be an entire plate).
+	int  parent; // parent node Id.
+	int  successor_nbr; // number of G_children for this node instance.
 };
 
 #endif // GLASSNODE_H

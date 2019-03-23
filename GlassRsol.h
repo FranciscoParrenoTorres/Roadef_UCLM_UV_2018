@@ -9,68 +9,68 @@
 class GlassRsol {
 public:
 	GlassRsol();
-	GlassRsol(unsigned int plate, unsigned int Rsol, unsigned int x,
-	unsigned int y, unsigned int w, unsigned int h,
-		int t, unsigned int c, unsigned int p, unsigned int n);
-	GlassRsol(unsigned int plate, unsigned int Rsol, unsigned int x,
-		unsigned int y, unsigned int w, unsigned int h,
-		int t, unsigned int c, unsigned int p);
-	GlassRsol(unsigned int plate, unsigned int Rsol, unsigned int x,
-		unsigned int y, unsigned int w, unsigned int h,
-		int t, unsigned int c);
+	GlassRsol(int  plate, int  Rsol, int  x,
+	int  y, int  w, int  h,
+		int t, int  c, int  p, int  n);
+	GlassRsol(int  plate, int  Rsol, int  x,
+		int  y, int  w, int  h,
+		int t, int  c, int  p);
+	GlassRsol(int  plate, int  Rsol, int  x,
+		int  y, int  w, int  h,
+		int t, int  c);
 	virtual ~GlassRsol();
 
-	unsigned int plateId() {
+	int  plateId() {
 		return _plateId;
 	}
 
-	unsigned int id() {
+	int  id() {
 		return _id;
 	}
 
-	unsigned int x() {
+	int  x() {
 		return _x;
 	}
 
-	unsigned int y() {
+	int  y() {
 		return _y;
 	}
 
-	unsigned int w() {
+	int  w() {
 		return _w;
 	}
 
-	unsigned int h() {
+	int  h() {
 		return _h;
 	}
-	unsigned int X() {
+	int  X() {
 		return _X;
 	}
 
-	unsigned int Y() {
+	int  Y() {
 		return _Y;
 	}
 	int RsolType() {
 		return _RsolType;
 	}
 
-	unsigned int Getcut() {
+	int  Getcut() {
 		return cut;
 	}
-	unsigned int copiesx() {
+	int  copiesx() {
 		return _copiesx;
 	}
-	unsigned int copiesy() {
+	int  copiesy() {
 		return _copiesy;
 	}
-	unsigned int iditem() {
+	int  iditem() {
 		return _iditem;
 	}
-	unsigned int Getparent() {
+	int  Getparent() {
 		return parent;
 	}
 
-	unsigned int Getsuccessor_nbr() {
+	int  Getsuccessor_nbr() {
 		return successor_nbr;
 	}
 
@@ -79,57 +79,57 @@ public:
 	
 
 
-	void plateId(unsigned int id) {
+	void plateId(int  id) {
 		_plateId = id;
 	}
 
-	void SetRsol_id(unsigned int id) {
+	void SetRsol_id(int  id) {
 		_id = id;
 	}
 
-	void x(unsigned int x) {
+	void x(int  x) {
 		_x = x;
 	}
 
-	void y(unsigned int y) {
+	void y(int  y) {
 		_y = y;
 	}
 
-	void w(unsigned int w) {
+	void w(int  w) {
 		_w = w;
 	}
-	void iditem(unsigned int y) {
+	void iditem(int  y) {
 		_iditem = y;
 	}
-	void copiesx(unsigned int y) {
+	void copiesx(int  y) {
 		_copiesx = y;
 	}
-	void copiesy(unsigned int w) {
+	void copiesy(int  w) {
 		_copiesy = w;
 	}
-	void h(unsigned int h) {
+	void h(int  h) {
 		_h = h;
 	}
-	void X(unsigned int w) {
+	void X(int  w) {
 		_X = w;
 	}
 
-	void Y(unsigned int h) {
+	void Y(int  h) {
 		_Y = h;
 	}
 	void RsolType(int t) {
 		_RsolType = t;
 	}
 
-	void Setcut(unsigned int c) {
+	void Setcut(int  c) {
 		cut = c;
 	}
 
-	void Setparent(unsigned int p) {
+	void Setparent(int  p) {
 		parent = p;
 	}
 
-	void Setchild_nbr(unsigned int nbr) {
+	void Setchild_nbr(int  nbr) {
 		successor_nbr = nbr;
 	}
 
@@ -143,17 +143,17 @@ public:
 
 protected:
 private:
-	unsigned int _plateId; // Plate Id.
-	unsigned int _id; // Rsol Id.
-	unsigned int _iditem; // Rsol Id.
-	unsigned int _x; // x position.
-	unsigned int _y; // y position.
-	unsigned int _w; // Plate's width.
-	unsigned int _h; // Plate's height.
-	unsigned int _X; // Plate's width.
-	unsigned int _Y; // Plate's height.
-	unsigned int _copiesx; // Plate's width.
-	unsigned int _copiesy; // Plate's height.
+	int  _plateId; // Plate Id.
+	int  _id; // Rsol Id.
+	int  _iditem; // Rsol Id.
+	int  _x; // x position.
+	int  _y; // y position.
+	int  _w; // Plate's width.
+	int  _h; // Plate's height.
+	int  _X; // Plate's width.
+	int  _Y; // Plate's height.
+	int  _copiesx; // Plate's width.
+	int  _copiesy; // Plate's height.
 
 	int _RsolType; /* Rsol type
 				   * > 0 glass piece index in batch file.
@@ -161,9 +161,9 @@ private:
 				   * = -2 branch.
 				   * = -3 residual.
 				   */
-	unsigned int cut; // cut G_level (there are 1, 2, 3 and 4-cut G_level, could not be 0-cut because GlassRsol class instance can't be an entire plate).
-	unsigned int parent; // parent Rsol Id.
-	unsigned int successor_nbr; // number of G_children for this Rsol instance.
+	int  cut; // cut G_level (there are 1, 2, 3 and 4-cut G_level, could not be 0-cut because GlassRsol class instance can't be an entire plate).
+	int  parent; // parent Rsol Id.
+	int  successor_nbr; // number of G_children for this Rsol instance.
 };
 
 #endif // GLASSRSOL_H

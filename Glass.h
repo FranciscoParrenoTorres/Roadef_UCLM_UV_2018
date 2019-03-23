@@ -8,6 +8,7 @@
 using namespace std;
 
 extern int Global_Best_Objective_Function;
+extern int Param;
 extern  int DibujarOpenGL();
 class GlassPlate;
  class GlassRectangle;
@@ -45,8 +46,8 @@ public:
 
 										 /// Optimization Parameters file Parser
 
-	unsigned int active_log = 1;
-	unsigned int active_log_error = 0;// Once log file is generated this var will be cleared.
+	int  active_log = 1;
+	int  active_log_error = 0;// Once log file is generated this var will be cleared.
 //	std::ofstream log_file; // Reference to log file.
 
 //	std::ofstream statistics_file; // Reference to statisticsLog file.
@@ -57,41 +58,41 @@ public:
 	std::string testPath ; // To save path according to chosen test.
 	std::string instance ; // To save used file index (Test mode).
 
-	unsigned int s_idx = 0; // Solution index, used precise where to insert solution node in sol_items array.
-	unsigned int plates_nbr = 0; // Save solution used plates number.
-	unsigned int stack_nbr = 0; // Save batch stack number.
-	unsigned int plates_list[PLATES_NBR_LIMIT][2];   // Save number of nodes for each plate used in user solution.
+	int  s_idx = 0; // Solution index, used precise where to insert solution node in sol_items array.
+	int  plates_nbr = 0; // Save solution used plates number.
+	int  stack_nbr = 0; // Save batch stack number.
+	int  plates_list[PLATES_NBR_LIMIT][2];   // Save number of nodes for each plate used in user solution.
 													 // plates_list[X][Y]:   X dimension contains plates Ids list
 													 //                      Y dimension contains number of nodes of plate X
 													 //change
-	unsigned int plate_defect[100][2];
+	int  plate_defect[100][2];
 
-	unsigned int lines_nbr = 0; // csv file lines number.
-	unsigned int node_nbr = 0; // Solution file nodes number.
-	unsigned int useful_node = 0; // Solution useful nodes number (node not a branch or waste or residual).
-	unsigned int branch_node = 0; // Solution branch nodes number
-	unsigned int residual_node = 0; // Solution residual nodes number.
-	unsigned int waste_node = 0; // Solution waste nodes number.
-	unsigned int batch_items = 0; // Batch items number.
-	unsigned int constraint_error = 0; // Success constraint, combination of solution's occured errors (refer to main.h to find errors list).
-	unsigned int defects_nbr = 0; // Defects file defects number.
+	int  lines_nbr = 0; // csv file lines number.
+	int  node_nbr = 0; // Solution file nodes number.
+	int  useful_node = 0; // Solution useful nodes number (node not a branch or waste or residual).
+	int  branch_node = 0; // Solution branch nodes number
+	int  residual_node = 0; // Solution residual nodes number.
+	int  waste_node = 0; // Solution waste nodes number.
+	int  batch_items = 0; // Batch items number.
+	int  constraint_error = 0; // Success constraint, combination of solution's occured errors (refer to main.h to find errors list).
+	int  defects_nbr = 0; // Defects file defects number.
 
-	unsigned int total_waste = 0; // Sum of wasted area.
-	unsigned int total_useful = 0; // Sum of used area.
+	int  total_waste = 0; // Sum of wasted area.
+	int  total_useful = 0; // Sum of used area.
 
 	int max_cut_stage = 0; // Solution max used cut stage.
 
-	unsigned int Total_area = 0;
-	unsigned int plate_nbr_limit = 0; // To save Optimization parameters plate number limit constraint.
-	unsigned int plate_w = 0; // To save Optimization parameters plate's length constraint.
-	unsigned int plate_h = 0; // To save Optimization parameters plate's width constraint.
-	unsigned int min1Cut = 0; // To save Optimization parameters cut 1 & 2 min1Cut constraint.
-	unsigned int min2Cut = 0; // To save Optimization parameters cut 1 & 2 min2Cut constraint.
-	unsigned int max1Cut = 0; // To save Optimization parameters cut 1 & 2 max1Cut  constraint.
-	unsigned int waste_min = 0; // To save Optimization parameters cut 1 & 2 minWasteWidth constraint.
+	int  Total_area = 0;
+	int  plate_nbr_limit = 0; // To save Optimization parameters plate number limit constraint.
+	int  plate_w = 0; // To save Optimization parameters plate's length constraint.
+	int  plate_h = 0; // To save Optimization parameters plate's width constraint.
+	int  min1Cut = 0; // To save Optimization parameters cut 1 & 2 min1Cut constraint.
+	int  min2Cut = 0; // To save Optimization parameters cut 1 & 2 min2Cut constraint.
+	int  max1Cut = 0; // To save Optimization parameters cut 1 & 2 max1Cut  constraint.
+	int  waste_min = 0; // To save Optimization parameters cut 1 & 2 minWasteWidth constraint.
 
-	unsigned int success = 1;
-
+	int  success = 1;
+	int Total_defects = 0;
 	int MinDimensionPieza = MAXIMUM_INT;
 	int MaxMinDimensionPieza = 0;
 	int MinDimensionPieza_Inicial = MAXIMUM_INT;
@@ -103,23 +104,23 @@ public:
 	int Para_Random = 2;
 	int Start_strip = 0;
 	int MoreThanOne = 0;
-	unsigned int G_iter_veces = 0;
+	int  G_iter_veces = 0;
 	int G_Time = 0;
 	bool G_Classic = false;
 	bool G_Rotate = false;
 	int TrozoBin = 0;
 	struct timeb G_Time_Initial ;
 	
+	int Total_area_defects = 0;
+	int  Total_area_used = 0;//Suma of used area partial
+	int  Total_width_bin = 0;
+	int  Max_First_Bin = 0;
+	int  Objective_function = 0;
+	int  Partial_objective_function = 1000;
 
-	unsigned int Total_area_used = 0;//Suma of used area partial
-	unsigned int Total_width_bin = 0;
-	unsigned int Max_First_Bin = 0;
-	unsigned int Objective_function = 0;
-	unsigned int Partial_objective_function = 1000;
-
-	unsigned int Inicio = 0;
-	unsigned int Plates = 0;
-	unsigned int NumberOfPlate = 0;
+	int  Inicio = 0;
+	int  Plates = 0;
+	int  NumberOfPlate = 0;
 	bool G_finish_instant =true;
 	int SizeOfBeam = 1;
 	int Hilo = 0;
@@ -130,32 +131,32 @@ public:
 	std::list< GlassNodeB > ListaNodosBeam_Utilization2;
 	std::list< GlassNodeB > ListaNodosBeam_G_children;
 	std::list< GlassNodeB > ListaNodosBeam_G_children_Classical;
-	unsigned int seed = 1;
+	int  seed = 1;
 	int G_Iterations = 1;
 	int G_Size_width = 1;
-	unsigned int Partial_objective_function_List = MAXIMUM_INT; //Least value of Partial_objective_function int percentaje per thousand
-	unsigned int Max_List_Nodos_Beam_Per_Nodo = 10;
-	unsigned int Max_List_Nodos_Beam = 100;
-	unsigned int Max_List_Nodos_Beam_Global = 50;
-	unsigned int Max_List_Nodos_Beam_Global_Double = 50;
-	unsigned int Max_List_Nodos_Beam_Global_Utilization = 50;
-	unsigned int Max_List_Nodos_Beam_Global_Global = 50;
-	unsigned int Initial_Objective_function = 0;
-	unsigned int Best_Objective_function = MAXIMUM_INT;
-	unsigned int Best_Objective_function_Thread = MAXIMUM_INT;
-	unsigned int Best_plates_nbr = 100;
-	unsigned int Best_iter = 0;
-	unsigned int G_iteraciones = 1500;
-	unsigned int G_level = 0;
-	unsigned int G_iter = 0;
-	unsigned int G_children = 0;
-	unsigned int NumberOfPlates = 100;
-	unsigned int RestOfLastPlate = 0;
-	unsigned int Best_Width_First_Rotate = 0;
+	int  Partial_objective_function_List = MAXIMUM_INT; //Least value of Partial_objective_function int percentaje per thousand
+	int  Max_List_Nodos_Beam_Per_Nodo = 10;
+	int  Max_List_Nodos_Beam = 100;
+	int  Max_List_Nodos_Beam_Global = 50;
+	int  Max_List_Nodos_Beam_Global_Double = 50;
+	int  Max_List_Nodos_Beam_Global_Utilization = 50;
+	int  Max_List_Nodos_Beam_Global_Global = 50;
+	int  Initial_Objective_function = 0;
+	int  Best_Objective_function = MAXIMUM_INT;
+	int  Best_Objective_function_Thread = MAXIMUM_INT;
+	int  Best_plates_nbr = 100;
+	int  Best_iter = 0;
+	int  G_iteraciones = 1500;
+	int  G_level = 0;
+	int  G_iter = 0;
+	int  G_children = 0;
+	int  NumberOfPlates = 100;
+	int  RestOfLastPlate = 0;
+	int  Best_Width_First_Rotate = 0;
 	bool one_item_each = false;
 	bool draw_solution = true;
-	unsigned int node_id = 0;
-	unsigned int rect_id = 0;
+	int  node_id = 0;
+	int  rect_id = 0;
 	std::list< GlassRsol>  G_Rsol_Items;
 	std::list< GlassRsol>  G_Best_Rsol_Items;
 	bool wider = false;
@@ -180,9 +181,12 @@ public:
 	int G_type_strip = 1;
 	int G_tipo_lista = 0;
 	int G_Repeticiones = 1;
+	int G_Size_alpha = 3;
+	int G_Size_Chosen = 1;
 	int G_bad_solutions = 0;
 	std::vector< int > G_Vector_Size_Stacks;
 	bool G_first_time_node = false;
+	int Inicio_Tira = 0;
 
 	//Parallel
 	std::vector< std::vector< std::vector < int > > >  GP_Matrix_Items;
@@ -218,6 +222,7 @@ public:
 	
 	bool CheckSolutionEnd();
 	bool CheckSolutionPartial();
+	bool CheckSolutionPartial(int Min);
 	void PrintProblem(string problem);
 	Coordinates ItemGreaterRN_J(GlassRectangle &R);
 	void PutRSolType(std::list< GlassRsol > ::iterator  &it, int toright, int toup);
@@ -249,7 +254,7 @@ public:
 	void SelectByGlobalObjectiveFunction();
 	bool RemoveDominated();
 	void RecoverPartialSolution(int i);
-	void BetterSolution(int a);
+	bool BetterSolution(int a);
 	void SymetricProblem();
 	void DibujarChosen();
 	void SaveSolution();
@@ -262,6 +267,9 @@ public:
 	
 	//From a list of pieces, create the solution
 	void MakeFileTextSolution(string path);
+	void MakeFileTextSolutionOld(string path);
+	void MakeFileTextSolutionNew(string path);
+
 	int ThereIsSomethingInThisStrip(std::list< GlassRsol > ::iterator  &it, int ini, int fin, int fin_strip);
 
 
@@ -276,7 +284,7 @@ public:
 	int  NothingUp(std::vector< std::vector <int> > ::iterator  &it, int from, int tosize);
 
 	int  NextRightBottom(std::vector< std::vector <int> > ::iterator  &it, int toright);
-
+	int LessTopStrip(std::list< GlassRsol > ::iterator  &it, int toright);
 	//somtehing up -1 or the value
 	int  NothingUp(std::vector< std::vector <int> > ::iterator  &it, int toright);
 
@@ -299,7 +307,7 @@ public:
 	int  NothingUp(std::list< GlassRsol > ::iterator  &it, int from, int tosize);
 
 	int  NextRightBottom(std::list< GlassRsol > ::iterator  &it, int toright);
-
+	int  SecondTallestInTheStrip(std::list< GlassRsol > ::iterator  &it, int toright,int );
 	//somtehing up -1 or the value
 	int  NothingUp(std::list< GlassRsol > ::iterator  &it, int toright);
 
@@ -383,7 +391,7 @@ public:
 	inline bool Wastemin(int x1, int y1, int X1, int Y1, GlassRectangle & R);
 
 	//Originals
-
+	int parseBatchWithoutStacks(string path);
 	int parseOptimizationParams(string path);
 
 
@@ -461,7 +469,7 @@ public:
 	void statistics(void);
 	int verify_main_interactive(void);
 
-	unsigned int explore(GlassNode n);
+	int  explore(GlassNode n);
 	bool NoItemBetweenTallMin(std::list< GlassRsol > ::iterator  &it, int toright, int tall);
 	int  NextRightTop(std::list< GlassRsol > ::iterator  &it, int toright);
 	//Parallel
@@ -479,6 +487,9 @@ public:
 	int get_random(const int & min, const int & max);
 	void EscribirSolutionRotated(string filep, std::list< Glass_Corte> &);
 	bool EstaYaPuesto(int);
+	void RemoveNodo();
+	void Randomize(int iter);
+	void RandomSolution();
 };
 
 

@@ -10,7 +10,7 @@ GlassPlate::GlassPlate()
     residual.x(0);
     residual.y(0);
 }
-GlassPlate::GlassPlate(int nodoant, GlassRectangle &R, int nplate, unsigned int *nodos)
+GlassPlate::GlassPlate(int nodoant, GlassRectangle &R, int nplate, int  *nodos)
 {
 	type = -2;
 	cut = 0;
@@ -29,7 +29,7 @@ GlassPlate::GlassPlate(int nodoant, GlassRectangle &R, int nplate, unsigned int 
 	residual.x(0);
 	residual.y(0);
 }
-GlassPlate::GlassPlate(int nodoant, std::vector<int> &vecp , int nplate, unsigned int *nodos, int ntype, unsigned int ncut,int cant)
+GlassPlate::GlassPlate(int nodoant, std::vector<int> &vecp , int nplate, int  *nodos, int ntype, int  ncut,int cant)
 {
 	type = ntype;
 	cut = ncut;
@@ -50,7 +50,7 @@ GlassPlate::GlassPlate(int nodoant, std::vector<int> &vecp , int nplate, unsigne
 	residual.x(0);
 	residual.y(0);
 }
-GlassPlate::GlassPlate(GlassRectangle &R,int nplate,unsigned int *nodos)
+GlassPlate::GlassPlate(GlassRectangle &R,int nplate,int  *nodos)
 {
 	//ctor
 	pos_x = R.Getpos_x();

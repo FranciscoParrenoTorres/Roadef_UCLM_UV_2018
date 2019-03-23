@@ -17,20 +17,20 @@ class GlassRectangle
 {
 
 	
-	unsigned int rectangle_id; // rectangle's Id.
-	unsigned int rectangle_x; // rectangle's x position
-	unsigned int rectangle_y; //rectangle's y position
-	unsigned int pos_x; //candidate to put a item
-	unsigned int pos_y; //candidate to put a item
-	unsigned int rectangle_w; // rectangle's width.
-	unsigned int rectangle_h; // rectangle's height.
-	unsigned int parent;
-	unsigned int R_w; // rectangle's width.
-	unsigned int R_h; // rectangle's height.
-	unsigned int rectangle_minx_defect; // rectangle's x position
-	unsigned int rectangle_miny_defect; //rectangle's y position		
+	int  rectangle_id; // rectangle's Id.
+	int  rectangle_x; // rectangle's x position
+	int  rectangle_y; //rectangle's y position
+	int  pos_x; //candidate to put a item
+	int  pos_y; //candidate to put a item
+	int  rectangle_w; // rectangle's width.
+	int  rectangle_h; // rectangle's height.
+	int  parent;
+	int  R_w; // rectangle's width.
+	int  R_h; // rectangle's height.
+	int  rectangle_minx_defect; // rectangle's x position
+	int  rectangle_miny_defect; //rectangle's y position		
 	int rectangle_nd; //rectangle's number of  defects
-	unsigned int rectangle_scut; //1 vertical // 2  horizontal // 3 vertical
+	int  rectangle_scut; //1 vertical // 2  horizontal // 3 vertical
 	std::list< GlassDefect > rectangle_defect_list; //lista de defectos del rectángulo
 	static Glass *m_Glass;
     public:
@@ -45,35 +45,35 @@ class GlassRectangle
         int GetRectangle_id() { return rectangle_id; }
 		void Add_H(int a) { rectangle_h += a; R_h += a; };
 		void Add_W(int a) { rectangle_w += a; R_w += a; };
-		unsigned int Get_H() { return R_h; };
-        unsigned int Get_w() { return rectangle_w; }
-        unsigned int Get_h() { return rectangle_h; }
-		unsigned int Getdefectminw() { return rectangle_minx_defect; }
-		unsigned int Getdefectminh() { return rectangle_miny_defect; }
-		unsigned int Getpos_x() { return rectangle_x; }
-		unsigned int Getpos_y() { return rectangle_y; }
-		unsigned int Get_x() { return pos_x; }
-		unsigned int Get_y() { return pos_y; }
-		unsigned int GetParent() { return parent; }
+		int  Get_H() { return R_h; };
+        int  Get_w() { return rectangle_w; }
+        int  Get_h() { return rectangle_h; }
+		int  Getdefectminw() { return rectangle_minx_defect; }
+		int  Getdefectminh() { return rectangle_miny_defect; }
+		int  Getpos_x() { return rectangle_x; }
+		int  Getpos_y() { return rectangle_y; }
+		int  Get_x() { return pos_x; }
+		int  Get_y() { return pos_y; }
+		int  GetParent() { return parent; }
 		void Addcut() { rectangle_scut++; }
-		inline unsigned int Getpos_X() { return max(rectangle_x,pos_x)+rectangle_w; }
-		inline unsigned int Getpos_Y() { return max(rectangle_y,pos_y)+rectangle_h; }
-		inline unsigned int Getmin(){ return min(rectangle_w,rectangle_h); }
-		inline unsigned int Getmax() { return max(rectangle_w, rectangle_h); }
-		inline unsigned int GetArea() { return rectangle_w * rectangle_h; };
-		unsigned int GetMin() { return min(rectangle_w, rectangle_h); }
-		unsigned int Getnumdefects() { return rectangle_defect_list.size(); }
+		inline int  Getpos_X() { return max(rectangle_x,pos_x)+rectangle_w; }
+		inline int  Getpos_Y() { return max(rectangle_y,pos_y)+rectangle_h; }
+		inline int  Getmin(){ return min(rectangle_w,rectangle_h); }
+		inline int  Getmax() { return max(rectangle_w, rectangle_h); }
+		inline int  GetArea() { return rectangle_w * rectangle_h; };
+		int  GetMin() { return min(rectangle_w, rectangle_h); }
+		int  Getnumdefects() { return rectangle_defect_list.size(); }
 		std::list< GlassDefect > & Getdefectlist() { return rectangle_defect_list; };
-		unsigned int  Getsidecut() { return rectangle_scut; }
+		int   Getsidecut() { return rectangle_scut; }
 		void Set_id(int val) { rectangle_id = val; }
 		void Setcut(int val) { 
 			rectangle_scut = val; }
 
-		void Set_w(unsigned int val) { rectangle_w = val; R_w = val; }
-        void Set_h(unsigned int val) { rectangle_h = val; R_h = val; }
-		void Setpos_x(unsigned int val) { rectangle_x = val; pos_x = val; R_w = rectangle_w; }
-		void Setpos_y(unsigned int val) { rectangle_y = val; pos_y = val; R_h = rectangle_h;}
-		void SetParent(unsigned int val) { parent = val; }
+		void Set_w(int  val) { rectangle_w = val; R_w = val; }
+        void Set_h(int  val) { rectangle_h = val; R_h = val; }
+		void Setpos_x(int  val) { rectangle_x = val; pos_x = val; R_w = rectangle_w; }
+		void Setpos_y(int  val) { rectangle_y = val; pos_y = val; R_h = rectangle_h;}
+		void SetParent(int  val) { parent = val; }
 
 
 		//Compute

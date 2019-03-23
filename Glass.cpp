@@ -5,14 +5,33 @@ Glass::Glass()
 	//ctor
 }
 
+
+
+int Glass::randomfunc_1(int j)
+{
+	return rand() % j;
+}
+
 int Glass::get_random(const int & min, const int & max) {
 
-	static thread_local mt19937 generator(seed + m_id);
+	/*static thread_local mt19937 generator(seed + m_id);
 	std::uniform_int_distribution<int> distribution(min, max);
-	return distribution(generator);
+	return distribution(generator);*/
+	seed = (seed * 1103515245 + 12345) & RAND_MAX;
+return ((seed% (int)(((max)+1) - (min))) + (min));
+//	boost::mt19937 generator(seed + m_id);
+//	boost::random::uniform_int_distribution<int> distribution(min, max);
+//	int kk = distribution(generator);
+	
+//	printf("%d %d %d %d %d \n",kk,seed,m_id,min,max);
+ //		return kk;
+//	return distribution(generator);
+
 	//	return ((rand()% (int)(((max)+1) - (min))) + (min));
 	//	return ((rand_r(&seed) % (int)(((max)+1) - (min))) + (min));
 }
+
+//Funciones de inicialización
 Glass::Glass(int i)
 {
 
@@ -34,10 +53,7 @@ Glass::~Glass()
 }
 
 
-int Glass::randomfunc_1(int j)
-{
-	return rand() % j;
-}
+
 
 inline bool Glass::Overlap(int x1, int y1, int X1, int Y1, int x2, int y2, int X2, int Y2)
 {
@@ -327,6 +343,8 @@ Coordinates Glass::ItemGreaterRNRandom_J(GlassRectangle &R)
 	std::pair< int, int > kp2(-1, 0);
 	Coordinates pk3(kp2, kp);
 	int random = get_random(0, 10);
+	if (Param <= 1)
+		random = 1;
 
 	//	if (deterministic == true)
 	//	random = 1;
@@ -489,6 +507,7 @@ std::pair<int, int > Glass::ItemGreaterRNRandom(GlassRectangle &R)
 		return ItemGreaterRNAreaH(R);
 	if (random <= 10)
 		return ItemGreaterRNH(R);
+	return ItemGreaterRNH(R);
 }
 //over
 bool Glass::Overlap(int x1, int y1, int X1, int Y1, GlassRectangle &R)
@@ -865,7 +884,12 @@ bool Glass::CheckSolution()
 		if ((*it).x() > plate_w || (*it).y() > plate_h || (*it).X() > plate_w || (*it).Y() > plate_h)
 			PrintProblem("Alguna pieza fuera");
 		if ((*it).X() > (plate_w - waste_min) && (*it).X() != (plate_w))
+		{
+			printf("Pieza x %d y %d X %d Y %d\t", (*it).x(), (*it).y(), (*it).X(), (*it).Y());
+
 			PrintProblem("La X mayor que plate w menos 20");
+
+		}
 		if ((*it).Y() > (plate_h - waste_min) && (*it).Y() != (plate_h))
 			PrintProblem("La Y mayor que plate w menos 20");
 		if (G_Rotate == false)
@@ -926,79 +950,6 @@ bool Glass::CheckSolutionEnd()
 		//está fuera del plate 
 		if ((*it).x() > plate_w || (*it).y() > plate_h || (*it).X() > plate_w || (*it).Y() > plate_h)
 		{
-	//		PrintProblem("Alguna pieza fuera");
-			return false;
-		}
-
-		if ((*it).X() > (plate_w - waste_min) && (*it).X() != (plate_w))
-		{
-//			PrintProblem("La X mayor que plate w menos 20");
-			return false;
-		}
-		if ((*it).Y() > (plate_h - waste_min) && (*it).Y() != (plate_h))
-		{
-	//		PrintProblem("La Y mayor que plate w menos 20");
-			return false;
-		}
-		if (G_Rotate == false)
-		{
-
-			for (std::list< GlassDefect > ::iterator it2 = DefectsPlate[(*it).plateId()].begin(); it2 != DefectsPlate[(*it).plateId()].end(); it2++)
-			{
-				bool overlapping = Overlap((*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it2).Getpos_x(), (*it2).Getpos_y(), (*it2).Getpos_x() + (*it2).Getwidth(), (*it2).Getpos_y() + (*it2).Getheight());
-
-				if (overlapping == true)
-				{
-	//				printf("Pieza x %d y %d X %d Y %d\t", (*it).x(), (*it).y(), (*it).X(), (*it).Y());
-		//			printf("Defecto x %d y %d X %d Y %d Rotate %d\t", (*it2).Getpos_x(), (*it2).Getpos_y(), (*it2).Getpos_x() + (*it2).Getwidth(), (*it2).Getpos_y() + (*it2).Getheight(), G_Rotate);
-					return false;
-				}
-			}
-		}
-		else
-		{
-			for (std::list< GlassDefect > ::iterator it2 = DefectsPlate[NumberOfPlates - (*it).plateId()].begin(); it2 != DefectsPlate[NumberOfPlates - (*it).plateId()].end(); it2++)
-			{
-				bool overlapping = Overlap((*it).x(), (*it).y(), (*it).X(), (*it).Y(),
-					plate_w - ((*it2).Getpos_x() + (*it2).Getwidth()), plate_h - ((*it2).Getpos_y() + (*it2).Getheight()), plate_w - (*it2).Getpos_x(), plate_h - (*it2).Getpos_y());
-				if (overlapping == true)
-					return false;
-			}
-		}
-		it_2 = it;
-		it_2++;
-		if (it_2 == G_Rsol_Items.end())
-			continue;
-		//Items from different plates
-		if ((*it).plateId() != (*it_2).plateId())
-			continue;
-		for (; it_2 != G_Rsol_Items.end(); it_2++)
-		{
-			if ((*it).plateId() != (*it_2).plateId())
-				continue;
-			bool overlapping = Overlap((*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it_2).x(), (*it_2).y(), (*it_2).X(), (*it_2).Y());
-			if (overlapping == true)
-				return false;
-		}
-
-		//		fprintf(fin3, "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", (*it)[0], items[(*it)[0]].Getitem_stack(), items[(*it)[0]].Getitem_seq(), (*it)[1], (*it)[2], (*it)[3], (*it)[4], (*it)[5]);
-	}
-	return true;
-}
-bool Glass::CheckSolutionPartial()
-{
-
-	if (G_Rsol_Items.size() == 0)
-		return true;
-
-	std::list< GlassRsol > ::reverse_iterator it, it_2;
-	unsigned int PlateId_current = G_Rsol_Items.back().plateId();
-	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend(); it++)
-	{
-		if ((*it).plateId() != PlateId_current) continue;
-		//está fuera del plate 
-		if ((*it).x() > plate_w || (*it).y() > plate_h || (*it).X() > plate_w || (*it).Y() > plate_h)
-		{
 			//		PrintProblem("Alguna pieza fuera");
 			return false;
 		}
@@ -1040,12 +991,12 @@ bool Glass::CheckSolutionPartial()
 		}
 		it_2 = it;
 		it_2++;
-		if (it_2 == G_Rsol_Items.rend())
+		if (it_2 == G_Rsol_Items.end())
 			continue;
 		//Items from different plates
 		if ((*it).plateId() != (*it_2).plateId())
 			continue;
-		for (; it_2 != G_Rsol_Items.rend(); it_2++)
+		for (; it_2 != G_Rsol_Items.end(); it_2++)
 		{
 			if ((*it).plateId() != (*it_2).plateId())
 				continue;
@@ -1058,6 +1009,181 @@ bool Glass::CheckSolutionPartial()
 	}
 	return true;
 }
+
+bool Glass::CheckSolutionPartial()
+{
+//	return true;
+	if (G_Rsol_Items.size() == 0)
+		return true;
+
+	std::list< GlassRsol > ::reverse_iterator it, it_2;
+	int  PlateId_current = G_Rsol_Items.back().plateId();
+	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() == PlateId_current; it++)
+	{
+
+		//está fuera del plate 
+		if ((*it).x() > plate_w || (*it).y() > plate_h || (*it).X() > plate_w || (*it).Y() > plate_h)
+		{
+			PrintProblem("Alguna pieza fuera");
+//			exit(3);
+			return false;
+		}
+
+		if ((*it).X() > (plate_w - waste_min) && (*it).X() != (plate_w))
+		{
+			return false;
+			printf("Pieza x %d y %d X %d Y %d\t", (*it).x(), (*it).y(), (*it).X(), (*it).Y());
+			
+			PrintProblem("La X mayor que plate w menos 20");
+
+		}
+		if ((*it).Y() > (plate_h - waste_min) && (*it).Y() != (plate_h))
+		{
+			PrintProblem("La Y mayor que plate w menos 20");
+//			exit(3);
+			return false;
+		}
+		if (G_Rotate == false)
+		{
+
+			for (std::list< GlassDefect > ::iterator it2 = DefectsPlate[(*it).plateId()].begin(); it2 != DefectsPlate[(*it).plateId()].end(); it2++)
+			{
+				bool overlapping = Overlap((*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it2).Getpos_x(), (*it2).Getpos_y(), (*it2).Getpos_x() + (*it2).Getwidth(), (*it2).Getpos_y() + (*it2).Getheight());
+
+				if (overlapping == true)
+				{
+					printf("Pieza x %d y %d X %d Y %d\t", (*it).x(), (*it).y(), (*it).X(), (*it).Y());
+					printf("Defecto x %d y %d X %d Y %d Rotate %d\t", (*it2).Getpos_x(), (*it2).Getpos_y(), (*it2).Getpos_x() + (*it2).Getwidth(), (*it2).Getpos_y() + (*it2).Getheight(), G_Rotate);
+//					exit(3);
+					return false;
+				}
+			}
+		}
+		else
+		{
+			for (std::list< GlassDefect > ::iterator it2 = DefectsPlate[NumberOfPlates - (*it).plateId()].begin(); it2 != DefectsPlate[NumberOfPlates - (*it).plateId()].end(); it2++)
+			{
+				bool overlapping = Overlap((*it).x(), (*it).y(), (*it).X(), (*it).Y(),
+					plate_w - ((*it2).Getpos_x() + (*it2).Getwidth()), plate_h - ((*it2).Getpos_y() + (*it2).Getheight()), plate_w - (*it2).Getpos_x(), plate_h - (*it2).Getpos_y());
+				if (overlapping == true)
+				{
+					PrintProblem("Overlapping");
+//					exit(3);
+					return false;
+				}
+			}
+		}
+		it_2 = it;
+		it_2++;
+		if (it_2 == G_Rsol_Items.rend())
+			continue;
+		//Items from different plates
+		if ((*it).plateId() != (*it_2).plateId())
+			continue;
+		for (; it_2 != G_Rsol_Items.rend() && (*it_2).plateId()==PlateId_current; it_2++)
+		{
+
+			bool overlapping = Overlap((*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it_2).x(), (*it_2).y(), (*it_2).X(), (*it_2).Y());
+			if (overlapping == true)
+			{
+				PrintProblem("Overlapping");
+//				exit(3);
+				return false;
+			}
+		}
+
+		//		fprintf(fin3, "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", (*it)[0], items[(*it)[0]].Getitem_stack(), items[(*it)[0]].Getitem_seq(), (*it)[1], (*it)[2], (*it)[3], (*it)[4], (*it)[5]);
+	}
+	return true;
+}
+
+bool Glass::CheckSolutionPartial(int Min)
+{
+	//	return true;
+	if (G_Rsol_Items.size() == 0)
+		return true;
+
+	std::list< GlassRsol > ::reverse_iterator it, it_2;
+	int  PlateId_current = G_Rsol_Items.back().plateId();
+	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() == PlateId_current && (*it).x()>=Min; it++)
+	{
+
+		//está fuera del plate 
+		if ((*it).x() > plate_w || (*it).y() > plate_h || (*it).X() > plate_w || (*it).Y() > plate_h)
+		{
+			PrintProblem("Alguna pieza fuera");
+			//			exit(3);
+			return false;
+		}
+
+		if ((*it).X() > (plate_w - waste_min) && (*it).X() != (plate_w))
+		{
+			return false;
+			printf("Pieza x %d y %d X %d Y %d\t", (*it).x(), (*it).y(), (*it).X(), (*it).Y());
+
+			PrintProblem("La X mayor que plate w menos 20");
+
+		}
+		if ((*it).Y() > (plate_h - waste_min) && (*it).Y() != (plate_h))
+		{
+			PrintProblem("La Y mayor que plate w menos 20");
+			//			exit(3);
+			return false;
+		}
+		if (G_Rotate == false)
+		{
+
+			for (std::list< GlassDefect > ::iterator it2 = DefectsPlate[(*it).plateId()].begin(); it2 != DefectsPlate[(*it).plateId()].end(); it2++)
+			{
+				bool overlapping = Overlap((*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it2).Getpos_x(), (*it2).Getpos_y(), (*it2).Getpos_x() + (*it2).Getwidth(), (*it2).Getpos_y() + (*it2).Getheight());
+
+				if (overlapping == true)
+				{
+					printf("Pieza x %d y %d X %d Y %d\t", (*it).x(), (*it).y(), (*it).X(), (*it).Y());
+					printf("Defecto x %d y %d X %d Y %d Rotate %d\t", (*it2).Getpos_x(), (*it2).Getpos_y(), (*it2).Getpos_x() + (*it2).Getwidth(), (*it2).Getpos_y() + (*it2).Getheight(), G_Rotate);
+					//					exit(3);
+					return false;
+				}
+			}
+		}
+		else
+		{
+			for (std::list< GlassDefect > ::iterator it2 = DefectsPlate[NumberOfPlates - (*it).plateId()].begin(); it2 != DefectsPlate[NumberOfPlates - (*it).plateId()].end(); it2++)
+			{
+				bool overlapping = Overlap((*it).x(), (*it).y(), (*it).X(), (*it).Y(),
+					plate_w - ((*it2).Getpos_x() + (*it2).Getwidth()), plate_h - ((*it2).Getpos_y() + (*it2).Getheight()), plate_w - (*it2).Getpos_x(), plate_h - (*it2).Getpos_y());
+				if (overlapping == true)
+				{
+					PrintProblem("Overlapping");
+					//					exit(3);
+					return false;
+				}
+			}
+		}
+		it_2 = it;
+		it_2++;
+		if (it_2 == G_Rsol_Items.rend())
+			continue;
+		//Items from different plates
+		if ((*it).plateId() != (*it_2).plateId())
+			continue;
+		for (; it_2 != G_Rsol_Items.rend() && (*it_2).plateId() == PlateId_current && (*it_2).x()>=Min; it_2++)
+		{
+
+			bool overlapping = Overlap((*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it_2).x(), (*it_2).y(), (*it_2).X(), (*it_2).Y());
+			if (overlapping == true)
+			{
+				PrintProblem("Overlapping");
+				//				exit(3);
+				return false;
+			}
+		}
+
+		//		fprintf(fin3, "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", (*it)[0], items[(*it)[0]].Getitem_stack(), items[(*it)[0]].Getitem_seq(), (*it)[1], (*it)[2], (*it)[3], (*it)[4], (*it)[5]);
+	}
+	return true;
+}
+
 bool Glass::AlgoritmoDeterminista()
 {
 	Total_area_used = 0;//Suma of used area partial
@@ -1175,7 +1301,7 @@ bool Glass::AlgoritmoRandom()
 		Total_width_bin = 0;
 		MinDimensionPieza = MinDimensionPieza_Inicial;
 		Total_area_used = 0;
-		int platec = 0;
+		//		int platec = 0;
 		int n_rectangle1 = 0;
 		int inicio = 0;
 		do
@@ -1344,15 +1470,25 @@ bool Glass::InsertPartialSolutionClassical()
 		return false;
 	if (ListaNodosBeam_G_children_Classical.size() == 0)
 	{
+		if (CheckSolutionPartial(Inicio_Tira) == false)
+			return false;
 		//the last one
 		GlassNodeB node;
 		createNodeB(node);
-		/*	if (G_finish_instant)
+		if (G_finish_instant)
 		{
-		FinishSolution();
-		node.Objective_function(Objective_function);
-		}*/
-		node.Objective_function(Objective_function);
+			FinishSolution();
+			node.Objective_function(Objective_function);
+		}
+		if (BetterSolution(1) != false)
+		{
+			ListaNodosBeam_G_children_Classical.push_back(node);
+		}
+		else
+		{
+			if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+		}
+		
 
 		ListaNodosBeam_G_children_Classical.push_back(node);
 		Partial_objective_function_List = node.Partial_objective_function();
@@ -1375,7 +1511,8 @@ bool Glass::InsertPartialSolutionClassical()
 					{
 						if (NotEqualCurrent((*it)) == true)
 						{
-
+							if (CheckSolutionPartial(Inicio_Tira) == false)
+								return false;
 							GlassNodeB node;
 							createNodeB(node);
 							if (Dominated(node) == true)
@@ -1385,8 +1522,16 @@ bool Glass::InsertPartialSolutionClassical()
 								FinishSolution();
 								node.Objective_function(Objective_function);
 							}
+							if (BetterSolution(1)!=false)
+							{
+								ListaNodosBeam_G_children_Classical.insert(it, (node));
+							}
+							else
+							{
+								if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+							}
 							//If f
-							ListaNodosBeam_G_children_Classical.insert(it, (node));
+							
 							if (ListaNodosBeam_G_children_Classical.size() >= Max_List_Nodos_Beam_Per_Nodo) ListaNodosBeam_G_children_Classical.pop_back();
 
 							return true;
@@ -1396,6 +1541,8 @@ bool Glass::InsertPartialSolutionClassical()
 					}
 					else
 					{
+						if (CheckSolutionPartial(Inicio_Tira) == false)
+							return false;
 						GlassNodeB node;
 						createNodeB(node);
 						if (Dominated(node) == true)
@@ -1405,7 +1552,14 @@ bool Glass::InsertPartialSolutionClassical()
 							FinishSolution();
 							node.Objective_function(Objective_function);
 						}
-						ListaNodosBeam_G_children_Classical.insert(it, (node));
+						if (BetterSolution(1) != false)
+						{
+							ListaNodosBeam_G_children_Classical.insert(it, (node));
+						}
+						else
+						{
+							if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+						}
 						if (ListaNodosBeam_G_children_Classical.size() >= Max_List_Nodos_Beam_Per_Nodo) ListaNodosBeam_G_children_Classical.pop_back();
 						return true;
 					}
@@ -1413,7 +1567,8 @@ bool Glass::InsertPartialSolutionClassical()
 				}
 
 			}
-
+			if (CheckSolutionPartial(Inicio_Tira) == false)
+				return false;
 			//the last one
 			GlassNodeB node;
 			createNodeB(node);
@@ -1424,7 +1579,15 @@ bool Glass::InsertPartialSolutionClassical()
 				FinishSolution();
 				node.Objective_function(Objective_function);
 			}
-			ListaNodosBeam_G_children_Classical.push_back(node);
+			if (BetterSolution(1) != false)
+			{
+				ListaNodosBeam_G_children_Classical.push_back(node);
+			}
+			else
+			{
+				if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+			}
+			
 			Partial_objective_function_List = node.Partial_objective_function();
 			return true;
 
@@ -1433,6 +1596,8 @@ bool Glass::InsertPartialSolutionClassical()
 		//The last one
 		if (ListaNodosBeam_G_children_Classical.size() < Max_List_Nodos_Beam_Per_Nodo)
 		{
+			if (CheckSolutionPartial(Inicio_Tira) == false)
+				return false;
 			GlassNodeB node;
 			createNodeB(node);
 			if (Dominated(node) == true)
@@ -1442,7 +1607,15 @@ bool Glass::InsertPartialSolutionClassical()
 				FinishSolution();
 				node.Objective_function(Objective_function);
 			}
-			ListaNodosBeam_G_children_Classical.push_back(node);
+			if (BetterSolution(1) != false)
+			{
+				ListaNodosBeam_G_children_Classical.push_back(node);
+			}
+			else
+			{
+				if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+			}
+			
 			Partial_objective_function_List = node.Partial_objective_function();
 			return true;
 		}
@@ -1458,7 +1631,7 @@ bool Glass::InsertPartialSolution()
 {
 	//We have a finished solution
 	//or 
-
+	//	printf("Check IP1 \n");
 	int falta = 0;
 	if (Total_area != Total_area_used)
 	{
@@ -1473,17 +1646,30 @@ bool Glass::InsertPartialSolution()
 		return false;
 	if (ListaNodosBeam_G_children.size() == 0)
 	{
+		//		printf("Check IP2 \n");
+		if (CheckSolutionPartial(Inicio_Tira) == false)
+			return false;
 		//the last one
 		GlassNodeB node;
 		createNodeB(node);
-		/*	if (G_finish_instant)
+		if (G_finish_instant)
 		{
-		FinishSolution();
+			FinishSolution();
+			node.Objective_function(Objective_function);
+		}
 		node.Objective_function(Objective_function);
-		}*/
-		node.Objective_function(Objective_function);
+		if (BetterSolution(1) != false)
+		{
+			ListaNodosBeam_G_children.push_back(node);
+		}
+		else
+		{
+			if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+		}
 
-		ListaNodosBeam_G_children.push_back(node);
+		
+
+
 		Partial_objective_function_List = node.Partial_objective_function();
 		return true;
 	}
@@ -1495,6 +1681,7 @@ bool Glass::InsertPartialSolution()
 			int cont = 0;
 			for (std::list< GlassNodeB > ::iterator it = ListaNodosBeam_G_children.begin(); it != ListaNodosBeam_G_children.end() && cont < Max_List_Nodos_Beam; it++, cont++)
 			{
+				//				printf("Check IP3 \n");
 				if ((*it).Utilization() >(Utilization + DBL_EPSILON))
 					continue;
 				else
@@ -1504,7 +1691,8 @@ bool Glass::InsertPartialSolution()
 					{
 						if (NotEqualCurrent((*it)) == true)
 						{
-
+							if (CheckSolutionPartial(Inicio_Tira) == false)
+								return false;
 							GlassNodeB node;
 							createNodeB(node);
 							if (Dominated(node) == true)
@@ -1514,8 +1702,16 @@ bool Glass::InsertPartialSolution()
 								FinishSolution();
 								node.Objective_function(Objective_function);
 							}
+							if (BetterSolution(1) != false)
+							{
+								ListaNodosBeam_G_children.insert(it, (node));
+							}
+							else
+							{
+								if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+							}
 							//If f
-							ListaNodosBeam_G_children.insert(it, (node));
+							
 							if (ListaNodosBeam_G_children.size() >= Max_List_Nodos_Beam) ListaNodosBeam_G_children.pop_back();
 
 							return true;
@@ -1525,6 +1721,8 @@ bool Glass::InsertPartialSolution()
 					}
 					else
 					{
+						if (CheckSolutionPartial(Inicio_Tira) == false)
+							return false;
 						GlassNodeB node;
 						createNodeB(node);
 						if (Dominated(node) == true)
@@ -1534,7 +1732,15 @@ bool Glass::InsertPartialSolution()
 							FinishSolution();
 							node.Objective_function(Objective_function);
 						}
-						ListaNodosBeam_G_children.insert(it, (node));
+						if (BetterSolution(1) != false)
+						{
+							ListaNodosBeam_G_children.insert(it, (node));
+						}
+						else
+						{
+							if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+						}
+					
 						if (ListaNodosBeam_G_children.size() >= Max_List_Nodos_Beam) ListaNodosBeam_G_children.pop_back();
 						return true;
 					}
@@ -1542,7 +1748,8 @@ bool Glass::InsertPartialSolution()
 				}
 
 			}
-
+			if (CheckSolutionPartial(Inicio_Tira) == false)
+				return false;
 			//the last one
 			GlassNodeB node;
 			createNodeB(node);
@@ -1553,7 +1760,15 @@ bool Glass::InsertPartialSolution()
 				FinishSolution();
 				node.Objective_function(Objective_function);
 			}
-			ListaNodosBeam_G_children.push_back(node);
+			if (BetterSolution(1) != false)
+			{
+				ListaNodosBeam_G_children.push_back(node);
+			}
+			else
+			{
+				if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+			}
+			
 			Partial_objective_function_List = node.Partial_objective_function();
 			return true;
 
@@ -1562,6 +1777,8 @@ bool Glass::InsertPartialSolution()
 		//The last one
 		if (ListaNodosBeam_G_children.size() < Max_List_Nodos_Beam)
 		{
+			if (CheckSolutionPartial(Inicio_Tira) == false)
+				return false;
 			GlassNodeB node;
 			createNodeB(node);
 			if (Dominated(node) == true)
@@ -1571,7 +1788,15 @@ bool Glass::InsertPartialSolution()
 				FinishSolution();
 				node.Objective_function(Objective_function);
 			}
-			ListaNodosBeam_G_children.push_back(node);
+			if (BetterSolution(1) != false)
+			{
+				ListaNodosBeam_G_children.push_back(node);
+			}
+			else
+			{
+				if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+			}
+			
 			Partial_objective_function_List = node.Partial_objective_function();
 			return true;
 		}
@@ -1734,12 +1959,12 @@ bool Glass::SecondFilter()
 	bool remove = false;
 	bool some_change = false;
 	std::list< GlassNodeB > ::iterator it, it2;
-	bool equal = true;
+	//	bool equal = true;
 	remove = false;
 	if (ListaNodosBeam_G_children.size() == 0)
 		return some_change;
 	it = ListaNodosBeam_G_children.begin();
-	unsigned int Val = 0;
+	int  Val = 0;
 	do
 	{
 		//Finish solution
@@ -1763,7 +1988,7 @@ void Glass::SelectByGlobalObjectiveFunction()
 	ListaNodosBeam.clear();
 	ListaNodosBeam_Utilization2.clear();
 	int cont = 0;
-	if (ListaNodosBeam_G_children.size() > Max_List_Nodos_Beam_Global_Utilization)
+	if (ListaNodosBeam_G_children.size() > (Max_List_Nodos_Beam_Global_Utilization+ Max_List_Nodos_Beam_Global_Global+ Max_List_Nodos_Beam_Global_Double))
 	{
 
 		//Second the part of the Objective Function
@@ -2218,7 +2443,11 @@ bool Glass::BeamSearchRotate(int Hil, int seed_id)
 	//	Iterations = Iterations / 2;
 	//	SizeOfBea = SizeOfBea / 2;
 	//	Many = Many / 2;
+//	Global_Best_Objective_Function = 4769940		;
+	SizeOfBeam = G_Size_width;
+	Hilo = m_id;
 	int Many = G_type_strip;
+
 	Initial_Objective_function = Global_Best_Objective_Function;
 	NumberOfPlates = (Global_Best_Objective_Function + Total_area) / (plate_w*plate_h);
 	RestOfLastPlate = (plate_w - (((Global_Best_Objective_Function + Total_area) % (plate_w*plate_h)) / plate_h)) + 1;
@@ -2239,33 +2468,18 @@ bool Glass::BeamSearchRotate(int Hil, int seed_id)
 
 	//Re run all the plates 
 	G_level = 0;
-
 	ListaNodosBeam.clear();
 	ListaNodosBeam_G_children.clear();
 	bool solutions_to_fill = false;
 	int Size_lista = 4;//V8
 
-	Max_List_Nodos_Beam = Size_lista * 3 * (G_iteraciones / 50)  * SizeOfBeam;
-	Max_List_Nodos_Beam_Global_Utilization = Size_lista * SizeOfBeam;
-	Max_List_Nodos_Beam_Global_Global = Size_lista * SizeOfBeam;
-	Max_List_Nodos_Beam_Global_Double = Size_lista * SizeOfBeam;
-	Max_List_Nodos_Beam_Per_Nodo = 5 * SizeOfBeam;
-	/*if (tipo_lista == 1)
-	{
-	Max_List_Nodos_Beam_Global_Utilization = 2 * Max_List_Nodos_Beam_Global_Utilization;
-	Max_List_Nodos_Beam_Global_Global = 0;
+	Max_List_Nodos_Beam = 12 * (G_Size_alpha + G_Size_Chosen)* (G_iteraciones / 200) * SizeOfBeam;
+	Max_List_Nodos_Beam_Per_Nodo = Max_List_Nodos_Beam;
+	Max_List_Nodos_Beam_Global_Utilization = 4 * G_Size_Chosen*(G_iteraciones / 200)* SizeOfBeam;
+	Max_List_Nodos_Beam_Global_Global = Max_List_Nodos_Beam_Global_Utilization;
+	Max_List_Nodos_Beam_Global_Double = Max_List_Nodos_Beam_Global_Utilization;
 
-	}
-	if (tipo_lista == 2)
-	{
-	Max_List_Nodos_Beam_Global_Utilization = 0;
-	Max_List_Nodos_Beam_Global_Global = 2 * Max_List_Nodos_Beam_Global_Global;
-	}
-	if (tipo_lista == 3)
-	{
-	Max_List_Nodos_Beam_Global_Utilization = 0;
-	Max_List_Nodos_Beam_Global_Double = 2 * Max_List_Nodos_Beam_Global_Double;
-	}*/
+
 	if (G_tipo_lista == 1)
 	{
 		Max_List_Nodos_Beam_Global_Utilization = 3 * Max_List_Nodos_Beam_Global_Utilization;
@@ -2283,18 +2497,12 @@ bool Glass::BeamSearchRotate(int Hil, int seed_id)
 		Max_List_Nodos_Beam_Global_Utilization = 0;
 		Max_List_Nodos_Beam_Global_Double = 3 * Max_List_Nodos_Beam_Global_Double;
 		Max_List_Nodos_Beam_Global_Global = 0;
-	}
+	}	
 	do
 	{
-		int Max_iter = (G_iteraciones);
+		int Max_iter = G_iteraciones;
 		//		ListaNodosBeam = ListaNodosBeam_G_children;
 		ListaNodosBeam_G_children.clear();
-		/*		int Size_lista = max(20 - G_level, static_cast<unsigned>(10));
-
-		if (G_level > 20)
-		Size_lista = 10;
-		Size_lista = 10; //V2,V5,V6
-		Size_lista = 7;//V7*/
 
 
 		if (G_level == 0)
@@ -2356,7 +2564,7 @@ bool Glass::BeamSearchRotate(int Hil, int seed_id)
 				}*/
 				//				srand(G_iter*SizeOfBeam);
 				int Inicio2 = -1;
-
+				int Inicio3 = Inicio;
 				for (int many = 0; (many<Many && Inicio2 != 0) && (MinDimensionPieza != MAXIMUM_INT || Total_area != Total_area_used); many++)
 				{
 
@@ -2442,8 +2650,8 @@ bool Glass::BeamSearchRotate(int Hil, int seed_id)
 
 
 				}
-				if (CheckSolutionPartial() == false)
-					continue;
+	//			if (CheckSolutionPartial(Inicio3) == false)
+		//			continue;
 				if ((Plates - 1) <= NumberOfPlates)
 				{
 					if (G_Classic == false || G_level == 0)
@@ -2452,7 +2660,7 @@ bool Glass::BeamSearchRotate(int Hil, int seed_id)
 						entered = InsertPartialSolutionClassical();
 				}
 				//				if (entered == true && G_level >= 100 )
-				
+
 				/*			if (G_iter == 4 && G_level == 2)
 				{
 				G_Best_Rsol_Items = G_Rsol_Items;
@@ -2464,7 +2672,14 @@ bool Glass::BeamSearchRotate(int Hil, int seed_id)
 				//a17 sobre 7240
 				//a19 2 paltes +1950
 
-				BetterSolution(4);
+				if (G_finish_instant == false && BetterSolution(4) == false)
+				{
+					if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+
+					G_children = Max_children;
+
+					//					RemoveNodo();
+				}
 				//			printf("Here2 %d\n",Many);
 
 				//			printf("Here3 Time %f\n",tmp_first);
@@ -2558,12 +2773,14 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 	ListaNodosBeam_G_children.clear();
 	bool solutions_to_fill = false;
 	int Size_lista = 4;//V8
+	printf("Valore %d %d %d\n", G_Size_alpha, G_Size_Chosen, SizeOfBeam);
 
-	Max_List_Nodos_Beam = Size_lista * 3 * (G_iteraciones / 100) * SizeOfBeam;
-	Max_List_Nodos_Beam_Global_Utilization = Size_lista * SizeOfBeam;
-	Max_List_Nodos_Beam_Global_Global = Size_lista * SizeOfBeam;
-	Max_List_Nodos_Beam_Global_Double = Size_lista * SizeOfBeam;
-	Max_List_Nodos_Beam_Per_Nodo = 5 * SizeOfBeam;
+	Max_List_Nodos_Beam = 12 * (G_Size_alpha+ G_Size_Chosen )* (G_iteraciones / 200) * SizeOfBeam;
+	Max_List_Nodos_Beam_Per_Nodo = Max_List_Nodos_Beam;
+	Max_List_Nodos_Beam_Global_Utilization = 4 * G_Size_Chosen*(G_iteraciones / 200)* SizeOfBeam;
+	Max_List_Nodos_Beam_Global_Global = Max_List_Nodos_Beam_Global_Utilization;
+	Max_List_Nodos_Beam_Global_Double = Max_List_Nodos_Beam_Global_Utilization;
+
 
 	if (G_tipo_lista == 1)
 	{
@@ -2601,6 +2818,17 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 		else
 			Max_iter = ListaNodosBeam.size() - 1;
 		solutions_to_fill = false;
+		if (G_type_strip == 3)
+		{
+			int alea = get_random(0, 10);
+			if (alea <= 6)
+				Many = 1;
+			else
+				if (alea <= 9)
+					Many = 2;
+				else
+					Many = 100;
+		}
 		for (G_iter = 0; G_iter < Max_iter && tmp_first<G_Time; G_iter++)
 		{
 			//nuevo
@@ -2630,12 +2858,14 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 
 
 			bool entered = false;
+			
 			for (G_children = 0; G_children < Max_children && tmp_first<G_Time; G_children++)
 			{
 				//				printf("G_children %d %d", G_children, Max_children);
 				Best_Objective_function = Global_Best_Objective_Function;
 				if (G_level != 0)
 					RecoverPartialSolution(G_iter);
+				Inicio_Tira = Inicio;
 				/*		if (Total_width_bin == 10480)
 				{
 				G_Best_Rsol_Items = G_Rsol_Items;
@@ -2651,17 +2881,21 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 
 				//				srand(G_iter*SizeOfBeam);
 				int Inicio2 = -1;
-
+				int Inicio3 = Inicio;
 				for (int many = 0; (many<Many && Inicio2 != 0) && (MinDimensionPieza != MAXIMUM_INT || Total_area != Total_area_used); many++)
 				{
+					//					printf("Many I %d\n", many);
 
 					//					printf("Iter %d", many);
 					cont_plates = Plates - 1;
 					GlassRectangle *rectangle = new GlassRectangle(n_rectangle, min(Inicio + max1Cut, plate_w), plate_h, DefectsPlate[Plates - 1], this, Inicio);
 					deterministic = false;
 					//inicio ==0 means finish a plate
-
+					if (G_level == 0 && G_iter == 3845 )
+						int kk = 9;
 					NumberOfPlate = Plates - 1;
+					if (G_children == 30 && G_level == 5 && G_iter == 16)
+						int kk = 9;
 					Inicio = AsignarItemsPlate_J(*rectangle);
 					delete rectangle;
 
@@ -2686,20 +2920,26 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 					Partial_objective_function = ((Plates - 1) * plate_h*plate_w) + (Total_width_bin * plate_h) - Total_area_used;
 					Utilization = ((double)Total_area_used) / ((double)(((Plates - 1) * plate_h*plate_w) + (Total_width_bin * plate_h)));
 
+//					printf("%d %d\n", Partial_objective_function, G_iter);
 					if (MinDimensionPieza != MAXIMUM_INT || Total_area != Total_area_used)
 						solutions_to_fill = true;
 					Inicio2 = Inicio;
 					if (Many != 100)
 						Inicio2 = 1;
-
+					//					printf("Many F %d\n", many);
 				}
-				if (CheckSolutionPartial() == false)
-					continue;
+				if (G_Rsol_Items.size() == 22 && G_Rsol_Items.back().iditem()==201)
+					int kk = 9;
+				if (G_level == 1 && G_iter == 0 && G_children == 385)
+					int kk = 9;
+				//				printf("Check I \n");
+
+				//				printf("Check I1 \n");
 				if (G_Classic == false || G_level == 0)
 					entered = InsertPartialSolution();
 				else
 					entered = InsertPartialSolutionClassical();
-
+				//				printf("Check F2 \n");
 				//				if (entered == true && G_level >= 100 )
 
 				/*			if (G_iter == 4 && G_level == 2)
@@ -2712,8 +2952,16 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 				//a20 es 5040
 				//a17 sobre 7240
 				//a19 2 paltes +1950
+//				BetterSolution(4);
+				if (G_finish_instant==false && BetterSolution(4) == false)
+				{
+					if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
 
-				BetterSolution(4);
+					G_children = Max_children;
+
+//					RemoveNodo();
+				}
+				
 				//			printf("Here2 %d\n",Many);
 
 				//			printf("Here3 Time %f\n",tmp_first);
@@ -2723,14 +2971,14 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 				ftime(&t1);
 				tmp_first = ((double)((t1.time - G_Time_Initial.time) * 1000 + t1.millitm - G_Time_Initial.millitm)) / 1000;
 				//			printf("Here3 Time %f\n", tmp_first);
-
+				//				printf("Tiempo Total %.3f  ahora %d iter %d Hilo %d\n", tmp_first, G_Time, Max_iter, Hilo);
 				CheckSolution();
 			}
 			if (G_Classic == true && G_level != 0)
 				InsertClassical();
 			ftime(&t1);
 			tmp_first = ((double)((t1.time - G_Time_Initial.time) * 1000 + t1.millitm - G_Time_Initial.millitm)) / 1000;
-
+			//			printf("Tiempo Total 0 %.3f  ahora %d iter %d Hilo %d\n", tmp_first, G_Time, Max_iter, Hilo);
 			//		printf("Here4 Time %f Total tiem %d\n", tmp_first,G_Time);
 
 
@@ -2738,11 +2986,13 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 		//		printf("Here42 Time %f Total tiem %d\n", tmp_first, G_Time);
 		ftime(&t1);
 		tmp_first = ((double)((t1.time - G_Time_Initial.time) * 1000 + t1.millitm - G_Time_Initial.millitm)) / 1000;
-
+		//		printf("Tiempo Total 1 %.3f  ahora %d iter %d Hilo %d\n", tmp_first,G_Time,G_iter,Hilo);
 		if (tmp_first > G_Time)
 			return true;
 		RemoveDominated();
 		FinishSolutions();
+		//		printf("Tiempo Total 2 %.3f  ahora %d iter %d Hilo %d\n", tmp_first, G_Time, G_iter, Hilo);
+
 		//		DoubleEvaluation();
 		ftime(&t1);
 		tmp_first = ((double)((t1.time - G_Time_Initial.time) * 1000 + t1.millitm - G_Time_Initial.millitm)) / 1000;
@@ -2753,10 +3003,12 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 		int size_possibles = ListaNodosBeam_G_children.size();
 
 		SelectByGlobalObjectiveFunction();
-		if (active_log_error) printf("Level %d Tam Lista Possibles %d Chosen %d Iterations %d Size %d Many %d Thread %d Iter %d Children %d\n \n", G_level, size_possibles, ListaNodosBeam.size(), G_Iterations, SizeOfBeam, Many, Hilo, G_iter, G_children);
+		if (active_log_error) printf("Level %d Tam Lista Possibles %d Chosen %d Iterations %d Size %d Many %d Thread %d Iter %d Children %d MAXP %d MAX %d\n \n", G_level, size_possibles, ListaNodosBeam.size(), G_Iterations, SizeOfBeam, Many, Hilo, G_iter, G_children, Max_List_Nodos_Beam, Max_List_Nodos_Beam_Global_Utilization);
 		//		DibujarChosen();
 		//		FinishSolutions();
 		G_level++;
+		//		printf("Tiempo Total 3 %.3f  ahora %d iter %d Hilo %d\n", tmp_first, G_Time, G_iter, Hilo);
+
 		/*
 		//For writing all the solutions
 		if (draw_solution == true && Best_iter == G_iter)
@@ -2779,6 +3031,34 @@ bool Glass::BeamSearch(int Hil, int seed_id)
 
 
 	return true;
+}
+void Glass::RemoveNodo()
+{
+	if (G_Classic == false)
+	{
+		for (std::list< GlassNodeB > ::iterator it = ListaNodosBeam_G_children.begin(); it != ListaNodosBeam_G_children.end(); it++)
+		{
+			//				printf("Check IP3 \n");
+			if (NotEqualCurrent((*it)) == false)
+			{
+				ListaNodosBeam_G_children.erase(it);
+				return;
+			}
+		}
+	}
+	else
+	{
+		for (std::list< GlassNodeB > ::iterator it = ListaNodosBeam_G_children_Classical.begin(); it != ListaNodosBeam_G_children_Classical.end(); it++)
+		{
+			if (NotEqualCurrent((*it)) == false)
+			{
+				ListaNodosBeam_G_children_Classical.erase(it);
+				return;
+			}
+		}
+	}
+
+
 }
 void Glass::DibujarChosen()
 {
@@ -2894,10 +3174,11 @@ int Glass::MinWidthLastPiece(std::list< GlassRsol >  &lista_temp)
 	}
 	return min;
 }
-void Glass::BetterSolution(int a)
+bool Glass::BetterSolution(int a)
 {
 	if (MinDimensionPieza == MAXIMUM_INT || Total_area == Total_area_used)
 	{
+		int Aleatorio = get_random(1, 99999);
 		if (G_Rotate == true)
 		{
 			//			G_Best_Rsol_Items = G_Rsol_Items;
@@ -2906,7 +3187,7 @@ void Glass::BetterSolution(int a)
 			//					{
 			//		WriteSolution();
 			//	DibujarOpenGL();
-			if ((Plates - 1) > NumberOfPlates)  return;
+			if ((Plates - 1) > NumberOfPlates)  return true;
 
 			//First without remove  the rest, after removing
 			//			int Width_First_Bin = 0;
@@ -2919,7 +3200,7 @@ void Glass::BetterSolution(int a)
 			if (Objective_function < Global_Best_Objective_Function)
 			{
 				if (CheckSolutionEnd() == false)
-					return;
+					return false;
 				if (active_log_error) printf("Objective_function %d best %d Partial Utilization %f Place %d  Iter %d Rotate %d\n", Objective_function, Global_Best_Objective_Function, Utilization, a, m_id, G_Rotate);
 				//				ChangeRectanglesSimmetry(Width_First_Bin);
 				std::list<GlassRsol> lista_Temp = G_Best_Rsol_Items;
@@ -2933,17 +3214,18 @@ void Glass::BetterSolution(int a)
 				//				}
 				//						printf("Path %s",file_idx.c_str());
 
-				MakeFileTextSolution(file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv");
-				TransformarSolucionSimetrica(file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv", false);
+				MakeFileTextSolution(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv");
+				TransformarSolucionSimetrica(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv", false);
 
-				if (parseSolution(file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv") != EXIT_FAILURE)
+				if (parseSolution(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv") != EXIT_FAILURE)
 				{
 					if (verify_main() != EXIT_SUCCESS)
 					{
 						//					WriteSolution();
 						//				DibujarOpenGL();
 						G_Best_Rsol_Items = lista_Temp;
-
+						remove((file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv").c_str());
+						return false;
 						//						return;
 						//					{
 
@@ -2961,10 +3243,13 @@ void Glass::BetterSolution(int a)
 						Global_Best_Objective_Function = Best_Objective_function;
 					}
 				}
-
 				else
+				{
 					G_Best_Rsol_Items = lista_Temp;
-				remove((file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv").c_str());
+					remove((file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv").c_str());
+					return false;
+				}
+				remove((file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv").c_str());
 			}
 
 			int Width_First_Bin = 0;
@@ -2975,7 +3260,7 @@ void Glass::BetterSolution(int a)
 			if (Objective_function < Global_Best_Objective_Function)
 			{
 				if (CheckSolutionEnd() == false)
-					return;
+					return false;
 				//				if (active_log_error) printf("Objective_function %d best %d Partial Utilization %f Place %d\n", Objective_function, Global_Best_Objective_Function, Utilization, a);
 				if (active_log_error) printf("Objective_function %d best %d Partial Utilization %f Place %d  Iter %d Rotate %d\n", Objective_function, Global_Best_Objective_Function, Utilization, a, m_id, G_Rotate);
 
@@ -2990,14 +3275,18 @@ void Glass::BetterSolution(int a)
 				//				}
 				//						printf("Path %s",file_idx.c_str());
 
-				MakeFileTextSolution(file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv");
-				TransformarSolucionSimetrica(file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv", true);
+				MakeFileTextSolution(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv");
+				TransformarSolucionSimetrica(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv", true);
 
-				if (parseSolution(file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv") != EXIT_FAILURE)
+				if (parseSolution(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv") != EXIT_FAILURE)
 				{
 					if (verify_main() != EXIT_SUCCESS)
 					{
+//						WriteSolution();
+	//					DibujarOpenGL();
 						G_Best_Rsol_Items = lista_Temp;
+						remove((file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv").c_str());
+						return false;
 						//					{
 						//					WriteSolution();
 						//				DibujarOpenGL();
@@ -3015,24 +3304,29 @@ void Glass::BetterSolution(int a)
 						Global_Best_Objective_Function = Best_Objective_function;
 					}
 				}
-
+				
 				else
+				{
 					G_Best_Rsol_Items = lista_Temp;
-				remove((file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv").c_str());
+					remove((file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv").c_str());
+					return false;
+				}
+				remove((file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv").c_str());
 				//					printf("Here\n");
 			}
 		}
 		else
 		{
 			//		if (G_Rotate == false)
+			int allways = true;
 			Objective_function = ((Plates - 1) * plate_h*plate_w) + ((Total_width_bin)* plate_h) - Total_area;
 			//					if (Objective_function < Best_Objective_function)Global_Best_Objective_Function
-			if (Objective_function < Global_Best_Objective_Function)
+			if (Objective_function < Global_Best_Objective_Function )
 
 			{
 				if (CheckSolutionEnd() == false)
-					return;
-				if (active_log_error) printf("Objective_function %d best %d Partial Utilization %f Place %d  Iter %d Rotate %d\n", Objective_function, Global_Best_Objective_Function, Utilization, a, m_id, G_Rotate);
+					return false;
+				if (active_log_error) printf("Objective_function_1 %d best %d Partial Utilization %f Place %d  Iter %d Rotate %d\n", Objective_function, Global_Best_Objective_Function, Utilization, a, m_id, G_Rotate);
 
 				//				if (active_log_error) printf("Objective_function1 %d best %d Partial Utilization %f Place %d\n", Objective_function, Global_Best_Objective_Function, Utilization, a);
 				//				Global_Best_Objective_Function = Objective_function;
@@ -3051,17 +3345,31 @@ void Glass::BetterSolution(int a)
 				//				}
 				//						printf("Path %s",file_idx.c_str());
 
-				MakeFileTextSolution(file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv");
+				MakeFileTextSolution(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv");
 				//			if (G_Rotate == true)
-				//			TransformarSolucionSimetrica(file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv");
+				//			TransformarSolucionSimetrica(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv");
 
-				if (parseSolution(file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv") != EXIT_FAILURE)
+				if (parseSolution(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv") != EXIT_FAILURE)
 				{
 					if (verify_main() != EXIT_SUCCESS)
+
+
 					{
+
+
+						//										WriteSolution();
+												//			exit(2);
+							//										DibujarOpenGL();
+						if (active_log_error) printf("falla \n");
 						G_Best_Rsol_Items = lista_Temp;
+						remove((file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv").c_str());
+//
+						return true;
+						return false;
+						
 						//					{
-						//						WriteSolution();
+						//				WriteSolution(file_idx+"Fran.txt");
+						//			exit(2);
 						//					DibujarOpenGL();
 						//				PrintProblem("Verificar");
 					}
@@ -3088,13 +3396,22 @@ void Glass::BetterSolution(int a)
 				}
 
 				else
+				{
+				//	WriteSolution();
+				//	DibujarOpenGL();
+					if (active_log_error) printf("falla el primer parse\n");
 					G_Best_Rsol_Items = lista_Temp;
-				remove((file_idx + "_solution_" + std::to_string(SizeOfBeam) + "_" + std::to_string(Hilo) + "_" + std::to_string(G_Time) + ".csv").c_str());
+					remove((file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv").c_str());
+					return true;
+					return false;
+				}
+				remove((file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv").c_str());
 				//					printf("Here\n");
 			}
 
 		}
 	}
+	return true;
 }
 void Glass::FinishSolutions()
 {
@@ -3120,9 +3437,18 @@ void Glass::FinishSolutions()
 		G_Vector_Items = (*it).Vector_Items();
 		G_Vector_Stacks = (*it).Vector_Stacks();
 		G_Rsol_Items = (*it).Sol_Items();
+		if (G_level == 1 && G_iter == 60 && G_children == 128 && (*it).Inicio()==3127)
+			int kk = 0;
 		FinishSolution();
+		if (BetterSolution(3) == false)
+		{
+			if (active_log_error) printf("Fallo Level %d Iter %d Children %d \n", G_level, G_iter, G_children);
+
+			Objective_function = MAXIMUM_INT;
+			(*it).Partial_objective_function(MAXIMUM_INT);
+		}
 		(*it).Objective_function(Objective_function);
-		BetterSolution(3);
+
 		ftime(&t1);
 		tmp_first = ((double)((t1.time - G_Time_Initial.time) * 1000 + t1.millitm - G_Time_Initial.millitm)) / 1000;
 
@@ -3238,14 +3564,30 @@ void Glass::InsertarSolucionGlobal()
 	return;
 
 }
+void Glass::Randomize(int iter)
+{
+	for (int i = 0; i < iter; i++)
+	{
+		RestartMatrix();
+		//				G_Positions_Items.clear();
+		G_Rsol_Items.clear();
+		Plates = 1;
+		Total_width_bin = 0;
+		MinDimensionPieza = MinDimensionPieza_Inicial;
+		MaxMinDimensionPieza = MaxMinDimensionPieza_Inicial;
+		Total_area_used = 0;
 
+		Inicio = 0;
+		RandomSolution();
+		if (Objective_function < Global_Best_Objective_Function)
+			Global_Best_Objective_Function = Objective_function;
 
-
-
-void Glass::FinishSolution()
+	}
+}
+void Glass::RandomSolution()
 {
 
-
+	//	printf("Check F1 \n");
 	int n_rectangle = 0;
 	deterministic = true;//V3
 	do
@@ -3261,6 +3603,7 @@ void Glass::FinishSolution()
 				{
 					deterministic = false;
 					Objective_function = ((NumberOfPlates + 1)* plate_h*plate_w) - Total_area_used;
+					//				printf("Check F2 \n");
 					return;
 				}
 				else
@@ -3280,9 +3623,9 @@ void Glass::FinishSolution()
 		//inicio ==0 means finish a plate
 
 		int InicioPrevio = Total_width_bin;
-
+		//		printf("Check AI1 %d\n", MinDimensionPieza);
 		Inicio = AsignarItemsPlate_J(*rectangle);
-
+		//		printf("Check AI2 %d\n", MinDimensionPieza);
 		delete rectangle;
 		if ((Total_area > Total_area_used && Inicio != 0) &&
 			(Total_width_bin == InicioPrevio ||
@@ -3334,8 +3677,143 @@ void Glass::FinishSolution()
 
 			}
 		}
+		//		printf("Check F2 %d\n",MinDimensionPieza);
 		//
 	} while (MinDimensionPieza != MAXIMUM_INT);
+	//	printf("Check F3 %d\n", MinDimensionPieza);
+	deterministic = false;
+	if (G_Rotate == true)
+	{
+		if (Plates == 1)
+			Objective_function = ((Plates - 1) * plate_h*plate_w) + ((Total_width_bin - RestOfLastPlate) * plate_h) - Total_area_used;
+		else
+			//			Objective_function = ((Plates - 2) * plate_h*plate_w) + ((plate_w - RestOfLastPlate) * plate_h) - Total_area_used;
+			Objective_function = ((Plates - 2) * plate_h*plate_w) + ((plate_w - RestOfLastPlate) * plate_h) + ((Total_width_bin)* plate_h) - Total_area_used;
+
+	}
+	else
+		Objective_function = ((Plates - 1) * plate_h*plate_w) + ((Total_width_bin)* plate_h) - Total_area_used;
+
+	/*	if (Objective_function < Best_Objective_function)
+	{
+	printf("terminando %d %d Inicio %d Veces %d Iter %d Level %d Children %d\n", Objective_function, Best_Objective_function,G_iter_inicio, G_iter_veces,G_iter,G_level,G_children);
+	Best_iter = 80000 ;
+	Best_plates_nbr = Plates;
+	Best_Objective_function = Objective_function;
+	G_Best_Rsol_Items = G_Rsol_Items;
+
+	WriteSolution();
+	DibujarOpenGL();
+	MakeFileTextSolution(file_idx + "_solution.csv");
+	parseSolution(file_idx + "_solution.csv");
+	if (verify_main() != EXIT_SUCCESS)
+	{
+
+	PrintProblem("Verificar");
+	}
+	}
+	*/
+}
+
+
+
+void Glass::FinishSolution()
+{
+
+	//	printf("Check F1 \n");
+	int n_rectangle = 0;
+	deterministic = true;//V3
+	do
+	{
+		int defectsPlate = Plates - 1;
+		cont_plates = Plates - 1;
+		if (G_Rotate == true)
+		{
+			defectsPlate = NumberOfPlates - (Plates - 1);
+			if (defectsPlate < 0)
+			{
+				if (Max_List_Nodos_Beam_Global_Global == 0)
+				{
+					deterministic = false;
+					Objective_function = ((NumberOfPlates + 1)* plate_h*plate_w) - Total_area_used;
+					//				printf("Check F2 \n");
+					return;
+				}
+				else
+					defectsPlate = Plates;
+
+			}
+			NumberOfPlate = defectsPlate;
+
+		}
+		else
+			NumberOfPlate = (Plates - 1);
+
+
+
+		GlassRectangle *rectangle = new GlassRectangle(n_rectangle, min(Inicio + max1Cut, plate_w), plate_h, DefectsPlate[NumberOfPlate], this, Inicio);
+
+		//inicio ==0 means finish a plate
+
+		int InicioPrevio = Total_width_bin;
+		//		printf("Check AI1 %d\n", MinDimensionPieza);
+		Inicio = AsignarItemsPlate_J(*rectangle);
+		//		printf("Check AI2 %d\n", MinDimensionPieza);
+		delete rectangle;
+		if ((Total_area > Total_area_used && Inicio != 0) &&
+			(Total_width_bin == InicioPrevio ||
+			((plate_w - Total_width_bin) != MinDimensionPieza && (plate_w - Total_width_bin)<(MinDimensionPieza + waste_min))))
+		{
+			Total_width_bin = plate_w;
+			Inicio = 0;
+		}
+		//				if (Total_width_bin)
+		CheckSolution();
+
+		//InsertPartial Solution
+		if (Inicio == 0)
+		{
+			if (MinDimensionPieza != MAXIMUM_INT)
+			{
+				Total_width_bin = 0;
+				Plates++;
+				/*				if (G_Rotate == true)
+				{
+				if (Plates > NumberOfPlates)
+				{
+				deterministic = false;
+				Objective_function = MAXIMUM_INT;
+				}
+				}*/
+
+			}
+		}
+		//New
+		if (Max_List_Nodos_Beam_Global_Global >= 0)
+		{
+			if (G_Rotate == true)
+			{
+				if (Plates == 1)
+					Objective_function = ((Plates - 1) * plate_h*plate_w) + ((Total_width_bin - RestOfLastPlate) * plate_h) - Total_area_used;
+				else
+					//			Objective_function = ((Plates - 2) * plate_h*plate_w) + ((plate_w - RestOfLastPlate) * plate_h) - Total_area_used;
+					Objective_function = ((Plates - 2) * plate_h*plate_w) + ((plate_w - RestOfLastPlate) * plate_h) + ((Total_width_bin)* plate_h) - Total_area_used;
+
+			}
+			else
+				Objective_function = ((Plates - 1) * plate_h*plate_w) + ((Total_width_bin)* plate_h) - Total_area_used;
+			if (Objective_function > Best_Objective_function)
+			{
+				deterministic = false;
+				Objective_function = ((NumberOfPlates + 1)* plate_h*plate_w) - Total_area_used;
+				return;
+
+			}
+		}
+		//		printf("Check F2 %d\n",MinDimensionPieza);
+		//
+	} while (MinDimensionPieza != MAXIMUM_INT);
+	//	printf("Check F3 %d\n", MinDimensionPieza);
 	deterministic = false;
 	if (G_Rotate == true)
 	{
@@ -3381,7 +3859,7 @@ remove = false;
 if (ListaNodosBeam_G_children.size() == 0)
 return some_change;
 it = ListaNodosBeam_G_children.begin();
-unsigned int Val = 0;
+int  Val = 0;
 do
 {
 //Finish solution
@@ -3437,7 +3915,7 @@ Coordinates Glass::PlaceItem(Coordinates p, GlassRectangle &Rect)
 	//	stMore = get_random(0, 500);
 
 	//int parent = Rect.GetRectangle_id();
-
+	
 
 	bool primer = false;
 	if (Rect.Getpos_x() == 0 && Rect.Getpos_X() == plate_w)
@@ -3904,7 +4382,8 @@ Coordinates Glass::PlaceItem(Coordinates p, GlassRectangle &Rect)
 		if (Sol.copiesy() == 0 && k>1 && k == (p.second.first + p.second.second - 1))
 			Sol2.copiesy(2);
 		//		G_Positions_Items.push_back(vec2);
-
+		if (Sol2.iditem() == 172 && Sol2.x() == 4428 && Sol2.y() == 0 && Sol2.plateId() == 1)
+			int kk = 9;
 		G_Rsol_Items.push_back(Sol2);
 		//		GlassRsol Rsol = GlassRsol(cont_plates-1, node_id++,vec2[1], vec2[2], vec2[3]-vec2[1],vec2[4]-vec2[2],vec2[0], Rect.Getsidecut()+1, parent);
 		//	G_Rsol_Items.push_back(Rsol);
@@ -3917,8 +4396,10 @@ Coordinates Glass::PlaceItem(Coordinates p, GlassRectangle &Rect)
 		vec2[0] = vec2[0] + 1;
 		vec2[1] = vec2[3];
 		//		vec2[7]=vec2[7]-1;
+		
 		if (Sol.Getcut() != 3)
 			Sol2.Setcut(Sol.Getcut() + 1);
+		
 		if (vec[6] != 3)
 			vec2[6] = vec[6] + 1;
 
@@ -4108,8 +4589,2300 @@ int  Glass::ThereIsSomethingInThisStrip(std::list< GlassRsol > ::iterator  &it, 
 	return minimo;
 }
 
+
+void Glass::PushWastes(int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int &pa, int &nod, int &pa_cut)
+{
+	if (py != y)
+	{
+		Glass_Corte  corte_temp(pla, nod++, x, y, pX - x, py - y, -1, pa_cut + 1, pa);
+		G_Solution_Rotated.push_front(corte_temp);
+
+
+	}
+	if (px != x)
+	{
+		//Biggest
+
+		Glass_Corte  corte_temp(pla, nod++, x, py, px - x, pY - py, -1, pa_cut + 1, pa);
+		G_Solution_Rotated.push_front(corte_temp);
+
+	}
+}
+void Glass::PushWastesBottom(int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int pa, int &nod, int pa_cut)
+{
+	if (py > y)
+	{
+		Glass_Corte  corte_temp(pla, nod++, x, y, pX - x, py - y, -1, pa_cut + 1, pa);
+		G_Solution_Rotated.push_front(corte_temp);
+
+
+	}
+
+}
+void Glass::PushWastesLeft(int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int pa, int &nod, int pa_cut)
+{
+
+	if (px != x)
+	{
+		//Biggest
+
+		Glass_Corte  corte_temp(pla, nod++, x, py, px - x, pY - py, -1, pa_cut + 1, pa);
+		G_Solution_Rotated.push_front(corte_temp);
+
+	}
+}
+void Glass::WriteWastes(FILE *files, int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int &pa, int &nod, int &pa_cut)
+{
+	if (py != y)
+	{
+		fprintf(files, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", pla, nod++, x, y, pX - x, py - y, -1, pa_cut + 1, pa);
+
+
+	}
+	if (px != x)
+	{
+		//Biggest
+
+		fprintf(files, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", pla, nod++, x, py, px - x, pY - py, -1, pa_cut + 1, pa);
+
+	}
+}
+void Glass::WriteWastesBottom(FILE *files, int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int pa, int &nod, int pa_cut)
+{
+	if (py > y)
+	{
+		fprintf(files, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", pla, nod++, x, y, pX - x, py - y, -1, pa_cut + 1, pa);
+
+
+	}
+
+}
+void Glass::WriteWastesLeft(FILE *files, int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int pa, int &nod, int pa_cut)
+{
+
+	if (px != x)
+	{
+		//Biggest
+		if ((pa_cut + 1) == 1) pY = plate_h;
+		fprintf(files, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", pla, nod++, x, py, px - x, pY - py, -1, pa_cut + 1, pa);
+
+	}
+}
+//Look up into the list an item down of this
+bool Glass::NothingDown(std::vector< std::vector <int> > ::iterator  &it)
+{
+	if (it == G_Best_Positions_Items.begin()) return true;
+	bool nada = true;
+	std::vector< std::vector <int> > ::iterator  it2;
+	for (it2 = it - 1; ; it2--)
+	{
+
+		//if starts above it
+		if (((*it2)[5] != (*it)[5]) || ((*it2)[4] > (*it)[2]) || ((*it2)[1] >= (*it)[3]) || ((*it2)[3] <= (*it)[1]))
+		{
+			if (it2 == G_Best_Positions_Items.begin())
+				return nada;
+			continue;
+		}
+
+		return false;
+	}
+	return true;
+}
+void  Glass::ChangeUnder(GlassRectangle & rectangleit, int val)
+{
+
+	//we can have both equal
+	int val2 = 0;
+	bool one = false;
+	std::list< GlassRsol > ::reverse_iterator  it;
+	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() == cont_plates; it++)
+	{
+		if ((*it).x() < Start_strip) return;
+		//Is the first one 
+		if ((*it).copiesy() == 0)
+		{
+			if (one == false)
+			{
+				val2 = (*it).copiesx();
+				(*it).copiesx((*it).copiesx() + val);
+				if ((*it).copiesx() > Total_width_bin)
+					Total_width_bin = (*it).copiesx();
+
+				one = true;
+
+			}
+			else
+			{
+				if ((*it).copiesx() != val2)
+					return;
+				(*it).copiesx((*it).copiesx() + val);
+				if ((*it).copiesx() > Total_width_bin)
+					Total_width_bin = (*it).copiesx();
+
+			}
+		}
+	}
+	if (one == true)
+		return;
+	PrintProblem("No ha encontrado ninguno debajo");
+	return;
+}
+void  Glass::ChangeWidthRectangles()
+{
+
+
+
+	bool fin = false;
+
+	//set the width
+	for (std::list< GlassRsol > ::reverse_iterator it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() >= cont_plates && (*it).x() >= Start_strip && fin != true; it++)
+	{
+
+
+		if ((*it).plateId() == cont_plates && (*it).X() != Total_width_bin && (*it).X() > (Total_width_bin - waste_min))
+		{
+
+
+			Total_width_bin = Total_width_bin + waste_min;
+			if ((plate_w - Total_width_bin) < waste_min)
+				Total_width_bin = plate_w;
+
+			fin = true;
+		}
+	}
+
+	bool first_base = false;
+//	for (std::list< GlassRsol > ::reverse_iterator it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() >= cont_plates && (*it).x() >= Start_strip && first_base != true; it++) //change 060319
+
+	for (std::list< GlassRsol > ::iterator it = G_Rsol_Items.begin(); it != G_Rsol_Items.end()  && first_base != true; it++)
+	{
+		if ((*it).plateId() < cont_plates)
+			continue;
+		if ((*it).x() < Start_strip)
+			continue;
+		if ((*it).copiesx() >= Total_width_bin)
+		{
+			if ((*it).copiesx() == plate_w || (*it).copiesx() == (Start_strip + max1Cut))
+			{
+				if ((NextRightCurrent(it, plate_w) > 0) && (*it).Getcut() == 2)
+				{
+
+					(*it).RsolType(2);
+
+
+					PutRSolTypeCurrent(it, max(Start_strip + max1Cut, plate_w), plate_w);
+				}
+				else
+				{
+					//					last_base = true;
+					(*it).Setcut(1);
+
+				}
+			}
+
+			//		if ((((*it).copiesx() != plate_w && (*it).copiesx() != (Start_strip + max1Cut)) && ((*it).copiesx() - 20) > Total_width_bin )
+			//		|| ((*it).copiesx()>(Start_strip + max1Cut)) || (MinDimensionPieza == MAXIMUM_INT && ((*it).copiesx() - 20) > Total_width_bin))
+			first_base = true;
+			if ((*it).copiesx()  > Total_width_bin)
+				(*it).copiesx(Total_width_bin);
+			//			else
+			//			Total_width_bin = Total_width_bin + 20;
+		}
+	}
+
+	return;
+}
+void Glass::ChangeRectanglesSimmetry(int maxWidth)
+{
+	bool first_base = false;
+
+	for (std::list< GlassRsol > ::iterator it = G_Rsol_Items.begin(); it != G_Rsol_Items.end() && (*it).plateId() <= 0 && first_base != true; it++)
+	{
+
+		if ((*it).copiesx() >= maxWidth)
+		{
+			if ((*it).copiesx() == plate_w)
+			{
+				if ((NextRightCurrent(it, plate_w) > 0) && (*it).Getcut() == 2)
+				{
+
+					(*it).RsolType(2);
+
+
+					PutRSolTypeCurrent(it, plate_w, plate_w);
+				}
+				else
+				{
+					//					last_base = true;
+					(*it).Setcut(1);
+
+				}
+			}
+			first_base = true;
+			if ((*it).copiesx()  > maxWidth)
+				(*it).copiesx(maxWidth);
+			//			else
+			//			Total_width_bin = Total_width_bin + 20;
+		}
+	}
+}
+void  Glass::ChangeBase(int width)
+{
+
+
+	std::list< GlassRsol > ::reverse_iterator  it;
+	bool change = false;
+	int max = 0;
+	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend(); it++)
+	{
+		if ((*it).plateId() != (cont_plates))
+			continue;
+		//Is the first one 
+		if ((*it).copiesx() > width)
+		{
+			if ((*it).X() > max)
+				max = (*it).X();
+		}
+	}
+	if (!((width - max) == 0 || (width - max) > waste_min))
+		width += waste_min;
+
+	bool first = false;
+	bool second = false;
+	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend(); it++)
+	{
+		if ((*it).plateId() != (cont_plates) || (*it).x()<Start_strip)
+			return;
+		//Is the first one 
+		if ((*it).copiesx() >= width)
+		{
+			(*it).copiesx(width);
+
+
+			(*it).copiesy(0);
+			if (first == true)
+			{
+
+				second = true;
+				(*it).RsolType(2);
+			}
+			if (first == false && NextPut(it, width) == true)
+			{
+
+				first = true;
+				(*it).RsolType(1);
+			}
+
+
+			if ((*it).copiesx() == (*it).X() && (*it).RsolType() == 0)
+				(*it).Setcut(1);
+
+			change = true;
+		}
+		else
+		{
+			if (first == true && second == false)
+				(*it).RsolType(1);
+		}
+	}
+	if (change == true)
+		return;
+	PrintProblem("No ha encontrado ninguno debajo");
+	return;
+}
+
+bool Glass::AsignarItemsPlate(GlassRectangle &rectangle)
+{
+	LRectangles list_rectangles;
+	list_rectangles.push_back(rectangle);
+	//We need a list of rectangles that we have to fill
+	bool placed = false;
+
+	//While there is rectangle to pack
+	do
+	{
+		rectangle = (*(list_rectangles.begin()));
+		bool posible = false;
+		int inicio = 0;
+
+		do
+		{
+
+			posible = false;
+			if (rectangle.Getmin() < MinDimensionPieza)
+			{
+				if (inicio == 1)
+					continue;
+			}
+			int cambiado = 0;
+		PLACE:
+			if (cambiado == 8 || rectangle.Getmin() < MinDimensionPieza)
+			{
+				if (inicio != 0)
+					continue;
+
+
+			}
+			std::pair<int, int > p(-1, 0);
+			if (deterministic == false)
+				p = ItemGreaterRNRandom(rectangle);
+			else
+				p = ItemGreaterRN(rectangle);
+
+			if (p.first == (-1)) //It means there is no piece in this hole
+			{
+				//Improve this case TODO LIST
+				// If there is a defect you can change the dimensions
+
+				//We are going to put to the top or to the right of the first
+				bool change = false;
+
+				do
+				{
+					change = ChangePositionToPlace(rectangle);
+				} while (rectangle.Getmin() < MinDimensionPieza && (change == true));
+				if (change == true)
+				{
+
+					cambiado++;
+					if (inicio == 0 && cambiado == 8 && (*(list_rectangles.begin())).Getpos_x() == rectangle.Getpos_x() && (*(list_rectangles.begin())).Getpos_y() == rectangle.Getpos_y())
+					{
+						list_rectangles.pop_front();
+						if (list_rectangles.size() == 0)
+							return false;
+						//						list_rectangles.push_front(rectangle);
+					}
+					goto PLACE;
+					//Antiguo 26/04/2018
+					/*					//Change the dimensions of the rectangle
+					rectangle.ChangeDimensionsNextDefect();
+					list_rectangles.pop_front();
+					list_rectangles.push_front(rectangle);
+					p = rectangle.ItemGreaterR();
+					if (p.first != (-1))
+					posible = true;
+					*/
+				}
+				else
+				{
+					//If it comes from bottom
+					if (inicio == 1)
+						//You should close this rectangle.
+						rectangle.Setcut(4);
+					else
+						list_rectangles.pop_front();
+				}
+
+
+			}
+			else
+				posible = true;
+			if (posible == true)
+			{
+
+				//Place this item in the plate
+				//Then can appear other rectangles
+				int rectan_id = rectangle.GetRectangle_id();
+
+				Coordinates xy = PlaceItem(p, rectangle);
+
+				placed = true;
+				UpdateMinDimension(p);
+				GlassRectangle rectangle_new = GlassRectangle(1, xy, rectangle, this);
+
+				if (rectangle.Getmin()>0)
+					rectangle.ModifyDefects();
+				//We have to add the previous rectangle modified
+				EraseRectangleFromList(list_rectangles, rectan_id);
+				if (rectangle.Getsidecut() != 4 && min(rectangle.Get_h(), rectangle.Getmin())>MinDimensionPieza)
+					list_rectangles.push_front(rectangle);
+				rectangle = rectangle_new;
+				inicio = 1;
+			}
+			if (MinDimensionPieza == MAXIMUM_INT)
+				return false;
+
+		} while (posible == true);
+
+
+
+	} while (list_rectangles.size() != 0);
+	return placed;
+}
+void Glass::ChangeRectangles(int Right, int Up, GlassRectangle &Rect, std::list< GlassRectangle> &lista, std::list< GlassDefect > ldefects)
+{
+	Rect.Print();
+	Rect.EverythingOK(Start_strip + max1Cut);
+	if (Right > 0)
+	{
+		//Change Rectangles 
+		for (std::list <GlassRectangle> ::iterator it = lista.begin(); it != lista.end(); it++)
+		{
+			if ((*it).Getpos_X() == Rect.Getpos_X())
+			{
+				(*it).Add_W(Right);
+
+				(*it).Getdefectlist().clear();
+				if (G_Rotate == false)
+					(*it).InsertDefects(ldefects);
+				else
+					(*it).InsertDefectsRotate(ldefects);
+			}
+			if ((*it).Getpos_x() == Rect.Getpos_X())
+			{
+				if ((*it).Get_w() > Right)
+					(*it).Add_W(-Right);
+				else
+					(*it).Set_w(0);
+
+				(*it).Setpos_x((*it).Getpos_x() + Right);
+				(*it).Getdefectlist().clear();
+				if (G_Rotate == false)
+					(*it).InsertDefects(ldefects);
+				else
+					(*it).InsertDefectsRotate(ldefects);
+			}
+		}
+		Rect.EverythingOK(Start_strip + max1Cut);
+		Rect.Add_W(Right);
+		Rect.EverythingOK(Start_strip + max1Cut);
+
+		//11/01/2018 CAMBIADO DESDE
+		//		if (Rect.Getpos_X()>Total_width_bin)
+		//		Total_width_bin = Rect.Getpos_X();
+		//HASTA 
+
+	}
+	if (Up > 0)
+	{
+		//Change Rectangles 
+		for (std::list <GlassRectangle> ::iterator it = lista.begin(); it != lista.end(); it++)
+		{
+			if ((*it).Getpos_Y() == Rect.Getpos_Y())
+			{
+				(*it).Add_H(Up);
+				(*it).Getdefectlist().clear();
+				if (G_Rotate == false)
+					(*it).InsertDefects(ldefects);
+				else
+					(*it).InsertDefectsRotate(ldefects);
+			}
+			if ((*it).Getpos_y() == Rect.Getpos_Y())
+			{
+				if ((*it).Get_h() > Up)
+					(*it).Add_H(-Up);
+				else
+					(*it).Set_h(0);
+				(*it).Setpos_y((*it).Getpos_y() + Up);
+				(*it).Getdefectlist().clear();
+				if (G_Rotate == false)
+					(*it).InsertDefects(ldefects);
+				else
+					(*it).InsertDefectsRotate(ldefects);
+			}
+		}
+		Rect.Add_H(Up);
+		Rect.EverythingOK(Start_strip + max1Cut);
+
+	}
+
+	Rect.Getdefectlist().clear();
+	if (G_Rotate == false)
+		Rect.InsertDefects(ldefects);
+	else
+		Rect.InsertDefectsRotate(ldefects);
+}
+bool Glass::Overlap(std::list< GlassRectangle> &lista, int x, int y, int X, int Y)
+{
+
+	/*	for (std::list <GlassRectangle> ::iterator it = lista.begin(); it != lista.end(); it++)
+	{
+	for (std::list < GlassDefect > ::iterator itD = (*it).Getdefectlist().begin(); itD != (*it).Getdefectlist().end() ; itD++)
+	{
+	if (Overlap(x, y, X, Y, (*itD).Getpos_x(), (*itD).Getpos_y(), (*itD).Getpos_x() + (*itD).Getwidth(), (*itD).Getpos_y() + (*itD).Getheight()))
+	return true;
+	}
+	}*/
+	for (std::list < GlassDefect > ::iterator itD = DefectsPlate[Plates - 1].begin(); itD != DefectsPlate[Plates - 1].end(); itD++)
+	{
+		if (Overlap(x, y, X, Y, (*itD).Getpos_x(), (*itD).Getpos_y(), (*itD).Getpos_x() + (*itD).Getwidth(), (*itD).Getpos_y() + (*itD).Getheight()))
+			return true;
+	}
+	return false;
+
+}
+std::pair< int, int > Glass::ComputeIfBetterToDoChange(GlassRectangle &Rect, Coordinates &pitem)
+{
+	std::pair< int, int > par(0, 0);
+	//If do not place anything lost area = rectangl
+	int Dimw = items[pitem.first.second].Getitem_w(pitem.second.first);
+	int Dimh = items[pitem.first.second].Getitem_h(pitem.second.first);
+	bool right = true;
+	if (Dimw*pitem.second.second > Rect.Get_w())
+		right = true;
+	else
+		right = false;
+	int  SaleDerecha = 0, SaleArriba = 0, LostArea_Changed = 0;
+	if (right == true)
+	{
+		SaleDerecha = Rect.Get_x() + Dimw * pitem.second.second - Rect.Getpos_X();
+		bool few = false;
+		if (SaleDerecha < waste_min)
+		{
+			few = true;
+			SaleDerecha += waste_min;
+
+
+			//Smaller than 20)
+			if (((Rect.Getpos_X() + SaleDerecha)>(plate_w - waste_min))
+				&& ((Rect.Getpos_X() + SaleDerecha)<(plate_w)))
+				SaleDerecha = plate_w - Rect.Getpos_X();
+		}
+		par.first = SaleDerecha;
+		if ((SaleDerecha + Rect.Getpos_X()) > min(plate_w, Start_strip + max1Cut))
+			par.first = -1;
+		LostArea_Changed = plate_h * (SaleDerecha)+
+			Rect.GetArea() - (items[pitem.first.second].Getitem_area()*pitem.second.second);
+
+		if (wider == true || get_random(0, 3) == 0 || deterministic == true)
+			LostArea_Changed = Rect.Get_y()*(SaleDerecha);
+		if (deterministic != true && few == true && (Rect.Get_x() + Dimw * pitem.second.second + waste_min) > min(Start_strip + max1Cut, plate_w))
+			LostArea_Changed = 2 * Rect.GetArea();
+
+	}
+	else
+	{
+		SaleArriba = Rect.Get_y() + Dimh - Rect.Getpos_Y();
+		//TODO find the value
+		bool few = false;
+		if (SaleArriba < waste_min)
+		{
+			few = true;
+			SaleArriba += waste_min;
+			//If all in the same cut starts at the same height
+			if (Rect.Getpos_y() != Rect.Get_y())
+				SaleArriba = plate_h;
+			else
+			{
+				if (AllStartsAtTheSameHeightInTheStrip(Rect) == false)
+					SaleArriba = plate_h;
+				else
+				{
+					if (((Rect.Getpos_Y() + SaleArriba)>(plate_h - waste_min))
+						&& ((Rect.Getpos_Y() + SaleArriba)<(plate_h)))
+						SaleArriba = plate_h - Rect.Getpos_Y();
+				}
+			}
+
+		}
+		par.second = SaleArriba;
+		if ((SaleArriba + Rect.Getpos_Y()) > plate_h)
+			par.first = -1;
+
+		LostArea_Changed = Rect.Getpos_X()*(SaleArriba)+
+			Rect.GetArea() - (items[pitem.first.second].Getitem_area()*pitem.second.second);
+
+		if (higher == true || get_random(0, 3) == 0 || deterministic == true)
+			LostArea_Changed = Rect.Get_x()*(SaleArriba);
+		if (deterministic != true && few == true && (Rect.Get_y() + Dimh + waste_min) >  plate_h)
+			LostArea_Changed = 2 * Rect.GetArea();
+
+	}
+
+	double factor_corrected = 1 + (double)((double)get_random(-8, 8) / (double)10);
+	if (deterministic == true)
+		factor_corrected = 1;
+	if (Rect.GetArea() < (double)factor_corrected*LostArea_Changed)
+		par.first = -1;
+	return par;
+
+}
+//					if (LostArea_Changed < LostArea_Original || (Total_area_used+2* items[p.first.second].Getitem_area()>=Total_area))
+
+void Glass::Randomize(std::vector< int > &lista)
+{
+
+	for (register int i = 0; i < lista.size(); i++)
+	{
+		int change = get_random(0, lista.size() - 1);
+		int temp = lista[i];
+		lista[i] = lista[change];
+		lista[change] = temp;
+	}
+}
+
+int Glass::AsignarItemsPlate_J(GlassRectangle &Rectan)
+{
+
+	LRectangles list_Rectans;
+	std::list< GlassDefect > LDefects = Rectan.Getdefectlist();
+	list_Rectans.push_back(Rectan);
+	Start_strip = Rectan.Get_x();
+	Rectan.EverythingOK(Start_strip + max1Cut);
+	//We need a list of Rectans that we have to fill
+	bool placed = false;
+	bool start_strip = true;
+	MoreThanOne = 0;
+	int Width_start = Total_width_bin;
+	//While there is Rectan to pack
+	do
+	{
+		//	printf("Check AIP1 %d\n", MinDimensionPieza);
+		if (MoreThanOne > 0)
+		{
+			ChangeRectangleFromList(list_Rectans, Total_width_bin);
+			ChangeBase(Total_width_bin);
+			MoreThanOne = 0;
+		}
+		Rectan = (*(list_Rectans.begin()));
+		Rectan.EverythingOK(Start_strip + max1Cut);
+		bool posible = false;
+		int inicio = 0;
+		int cambiado = 0;
+		if ((Rectan.Get_y() == 0 || Rectan.Getpos_y() == 0) && start_strip != true)
+		{
+
+			Total_width_bin = Rectan.Get_x();
+			ChangeWidthRectangles();
+
+			if ((Total_area > Total_area_used) &&
+				(Total_width_bin == Width_start ||
+				((plate_w - Total_width_bin) != MinDimensionPieza && (plate_w - Total_width_bin) < (MinDimensionPieza + waste_min))))
+			{
+				return 0;
+			}
+			else
+			{
+				if (Rectan.Get_x() < Total_width_bin)
+					int kk = 9;
+				return Rectan.Get_x();
+			}
+				
+		}
+		start_strip = false;
+		do
+		{
+
+			//		printf("Check AIP2 %d\n", MinDimensionPieza);
+			posible = false;
+			//			if (Rectan.Getmin() < MinDimensionPieza || Rectan.Getmax()< MinDimensionPieza)
+			if (Rectan.Getmax() < MinDimensionPieza || Rectan.Getmin() == 0)
+			{
+				if (inicio == 1)
+					continue;
+			}
+			cambiado = 0;
+		PLACE:
+			if (cambiado == 8 || (Rectan.Getmin() < MinDimensionPieza && Rectan.Getmax() < MinDimensionPieza))
+			{
+				if (inicio != 0)
+					continue;
+
+
+			}
+			std::pair<int, int > p2(-1, -1);
+			Coordinates p(p2, p2);
+			Para_Random = get_random(1, 4);
+
+			wider = false;
+			higher = false;
+			Rectan.EverythingOK(Start_strip + max1Cut);
+			//			printf("Check AIP3 %d\n", MinDimensionPieza);
+			if (get_random(0, 10) >= 8) one_item_each = true;
+			else
+				one_item_each = false;
+			if ((Rectan.Get_x() != Rectan.Getpos_x()) || (Rectan.Get_y() != Rectan.Getpos_y()))
+				one_item_each = true;
+
+			if (deterministic == false && Rectan.Getnumdefects()>0 && get_random(0, 5) <= 2)
+			{
+				//				if (((Rectan.Getdefectminw() - Rectan.Get_x()) ^ 2 + (Rectan.Getdefectminh() - Rectan.Get_y()) ^ 2)<(400 ^ 2 + (get_random(1, 10) * 50) ^ 2))
+				//					Rectan.ChangePositionToPlaceNearest(2);
+				//				int val1 = pow(Rectan.Getdefectminw() - Rectan.Get_x(), 2) + pow(Rectan.Getdefectminh() - Rectan.Get_y(), 2);
+				//			int val2 = pow(400, 2) + pow(get_random(1, 400), 2);
+				if (min(Rectan.Getdefectminw() - Rectan.Get_x(), Rectan.Getdefectminh() - Rectan.Get_y())<get_random(0, 200))
+
+					//				if (val1 <val2)
+				{
+					deterministic = true;
+					Rectan.ChangePositionToPlaceNearest(2);
+					deterministic = false;
+				}
+			}
+			//		printf("Check AIP4 %d\n", MinDimensionPieza);
+			//			if (G_iter_veces == 18231)
+			//			int kk = 9;
+			Randomize(G_Random_Stacks);
+
+			//				random_shuffle(G_Random_Stacks.begin(), G_Random_Stacks.end(),randomfunc_1);
+			p = ItemGreaterRNRandom_J(Rectan);
+			//another oner
+			//			printf("Check AIP5 %d\n", MinDimensionPieza);
+			/*			}
+			else
+			p = ItemGreaterRN_J(Rectan);*/
+			G_iter_veces++;
+
+			Rectan.EverythingOK(Start_strip + max1Cut);
+
+
+			if (p.first.first == (-1)) //It means there is no piece in this hole
+			{
+
+				//It means there is a piece overlapping the Rectan
+				if (p.first.second != (-1))
+				{
+
+					Rectan.EverythingOK(Start_strip + max1Cut);
+
+					//Change the first parameter is to the right, the second one to the top
+
+					std::pair< int, int > change = ComputeIfBetterToDoChange(Rectan, p);
+
+					//					if (LostArea_Changed < LostArea_Original || (Total_area_used+2* items[p.first.second].Getitem_area()>=Total_area))
+
+
+					if (change.first >= 0)
+					{
+
+						//change Rectans 
+						bool overlap_other = false;
+						//If the change is to the top
+						//It could be an infeasible solution
+						if (change.second > 0)
+						{
+							bool feasible = CheckChangesToTheTop(change.second, Rectan.Getpos_y());
+							if (feasible == true)
+							{
+								MakeFeasibleToTheTop(change.second, Rectan.Getpos_y());
+							}
+							else
+								overlap_other = true;
+						}
+
+
+
+						if (overlap_other == false)
+						{
+							Rectan.EverythingOK(Start_strip + max1Cut);
+							ChangeRectangles(change.first, change.second, Rectan, list_Rectans, DefectsPlate[NumberOfPlate]);
+							Rectan.EverythingOK(Start_strip + max1Cut);
+							p.first.first = p.first.second;
+							p.first.second = p.second.first;
+							p.second.first = p.second.second;
+							p.second.second = 1;
+
+							//We have to change the solution of the item above
+							if (change.first > 0)
+								ChangeUnder(Rectan, change.first);
+
+							posible = true;
+							Rectan.EverythingOK(Start_strip + max1Cut);
+							goto PLACE2;
+						}
+
+					}
+					Rectan.EverythingOK(Start_strip + max1Cut);
+				}
+				//Improve this case TODO LIST
+				// If there is a defect you can change the dimensions
+				//We are going to put to the top or to the right of the first
+				//				printf("Check AIP6 %d\n", MinDimensionPieza);
+				bool change = false;
+				do
+				{
+					Rectan.EverythingOK(Start_strip + max1Cut);
+					GlassRectangle kkrec = Rectan;
+					change = Rectan.ChangePositionToPlaceNearest(2);
+					Rectan.EverythingOK(Start_strip + max1Cut);
+					//					printf("Check AIP6_1 change %d x: %d y: %d  X: %d Y: %d Min %d MinPieza %d\n",change,Rectan.Getpos_x(),Rectan.Getpos_y(), Rectan.Getpos_X(), Rectan.Getpos_Y(), Rectan.Getmin(), MinDimensionPieza);
+				} while (Rectan.Getmin() < MinDimensionPieza && (change == true));
+				//			printf("Check AIP6_2 %d\n", MinDimensionPieza);
+				Rectan.EverythingOK(Start_strip + max1Cut);
+				if (change == true)
+				{
+
+					cambiado++;
+					if (inicio == 0 && cambiado == 8 && (*(list_Rectans.begin())).Getpos_x() == Rectan.Getpos_x() && (*(list_Rectans.begin())).Getpos_y() == Rectan.Getpos_y())
+					{
+						list_Rectans.pop_front();
+						if (list_Rectans.size() == 0)
+						{
+							ChangeWidthRectangles();
+							return 0;
+						}
+
+
+					}
+					goto PLACE;
+				}
+
+				else
+				{
+					//If it comes from bottom
+					if (inicio == 1)
+						//You should close this Rectan.
+						Rectan.Setcut(4);
+					else
+						list_Rectans.pop_front();
+				}
+
+
+			}
+			else
+				posible = true;
+			//			printf("Check AIP7 %d\n", MinDimensionPieza);
+			if (posible == true)
+			{
+			PLACE2:
+
+				//Place this item in the plate
+				//Then can appear other Rectans
+
+				Rectan.EverythingOK(Start_strip + max1Cut);
+				int rectan_id = Rectan.GetRectangle_id();
+
+				int MoreOne = MoreThanOne;
+
+				Coordinates xy = PlaceItem(p, Rectan);
+
+				Rectan.EverythingOK(Start_strip + max1Cut);
+				int MoreOne2 = MoreThanOne;
+				if ((MoreOne - MoreOne2) > 0)
+				{
+
+					ChangeRectangleFromList(list_Rectans, Total_width_bin);
+					ChangeBase(Total_width_bin);
+				}
+
+				placed = true;
+				UpdateMinDimension(p.first);
+				GlassRectangle Rectan_new = GlassRectangle(1, xy, Rectan, this);
+				if (active_log_error && G_Rotate == false)
+				{
+
+					if (G_Rsol_Items.back().X() > (plate_w - waste_min) && G_Rsol_Items.back().X() != (plate_w))
+					{
+
+						printf("Iter %d", G_iter_veces);
+						PrintProblem("Alguna pieza fuera X menos 20");
+					}
+				}
+				if (active_log_error)
+				{
+					if (G_Rsol_Items.back().Y() > (plate_h - waste_min) && G_Rsol_Items.back().Y() != (plate_h))
+					{
+
+						printf("Iter %d", G_iter_veces);
+						PrintProblem("Alguna pieza fuera X menos 20");
+					}
+				}				if (Rectan.Getmin()>0)
+					Rectan.ModifyDefects();
+				//We have to add the previous Rectan modified
+				EraseRectangleFromList(list_Rectans, rectan_id);
+				//Change 05062018
+
+				Rectan.EverythingOK(Start_strip + max1Cut);
+
+				if (Rectan.Getsidecut() != 4 && min(Rectan.Get_h(), Rectan.Getmin()) >= MinDimensionPieza)
+					list_Rectans.push_front(Rectan);
+				Rectan = Rectan_new;
+				Rectan.EverythingOK(Start_strip + max1Cut);
+
+
+				//				if (Rectan.Get)
+				inicio = 1;
+			}
+			if (MinDimensionPieza == MAXIMUM_INT)
+			{
+				ChangeWidthRectangles();
+				//			GlassRsol Rsol = GlassRsol(cont_plates - 1, node_id++, Total_width_bin, 0, plate_w-Total_width_bin, plate_h, -3,1, node_ini_plate);
+				//		G_Rsol_Items.push_back(Rsol);
+				return Total_width_bin;
+			}
+
+
+		} while (posible == true);
+
+
+
+	} while (list_Rectans.size() != 0);
+	if (Width_start == Total_width_bin)
+	{
+		ChangeWidthRectangles();
+		return 0;
+	}
+	else
+	{
+		ChangeWidthRectangles();
+		if ((Total_area > Total_area_used) &&
+			(Total_width_bin == Width_start ||
+			((plate_w - Total_width_bin) != MinDimensionPieza && (plate_w - Total_width_bin) < (MinDimensionPieza + waste_min))))
+		{
+			return 0;
+		}
+		else
+			return Total_width_bin;
+	}
+}
+bool   Glass::CheckChangesToTheTop(int top, int bottom)
+{
+
+	//we can have both equal
+
+	std::list< GlassRsol > ::reverse_iterator  it;
+	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() == cont_plates; it++)
+	{
+		//not in the strip
+		if ((*it).x() < Start_strip) return true;
+		if ((*it).Y() <= bottom) return true;
+		//Well positionated
+		if ((*it).y() <= bottom) continue;
+
+		if (Overlap((*it).x(), (*it).y() + top, (*it).X(), (*it).Y() + top) == true)
+			return false;
+
+	}
+	return true;
+}
+
+bool   Glass::MakeFeasibleToTheTop(int top, int bottom)
+{
+
+	//we can have both equal
+
+	std::list< GlassRsol > ::reverse_iterator  it;
+	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() == cont_plates; it++)
+	{
+		if ((*it).x() < Start_strip) return true;
+		if ((*it).Y() <= bottom) return true;
+		if ((*it).y() <= bottom) continue;
+		//Change this
+		(*it).y((*it).y() + top);
+		(*it).Y((*it).Y() + top);
+	}
+	return true;
+}
+//Change the position where can be a rectangle
+bool Glass::ChangePositionToPlace(GlassRectangle &R)
+{
+	//We are going to try to place to the top
+	if (R.Getsidecut() != 2)
+	{
+		if ((R.Getdefectminw() - R.Getpos_x()) <= (R.Getdefectminh() - R.Getpos_y()))
+		{
+			//Nothing to the bottom
+			bool change_st = R.FindTheFollowingDefect(R.Getdefectminw(), 1);
+			if (change_st == false && R.Getsidecut() == 1)
+				change_st = R.FindTheFollowingDefect(R.Getdefectminh(), 2);
+			return change_st;
+		}
+		else
+		{
+			//nothing to the left
+			bool change_st = R.FindTheFollowingDefect(R.Getdefectminh(), 2);
+			if (change_st == false)
+				change_st = R.FindTheFollowingDefect(R.Getdefectminw(), 1);
+			return change_st;
+		}
+
+	}
+	else
+	{
+		if ((R.Getdefectminw() - R.Getpos_x()) <= (R.Getdefectminh() - R.Getpos_y()))
+		{
+			//Nothing to the bottom
+			bool change_st = R.FindTheFollowingDefect(R.Getdefectminw(), 1);
+			if (change_st == false && R.Getsidecut() == 1)
+				change_st = R.FindTheFollowingDefect(R.Getdefectminh(), 2);
+			return change_st;
+		}
+		else
+		{
+			//nothing to the left
+			bool change_st = R.FindTheFollowingDefect(R.Getdefectminh(), 2);
+			if (change_st == false)
+				change_st = R.FindTheFollowingDefect(R.Getdefectminw(), 1);
+			return change_st;
+		}
+	}
+}
+
+void Glass::UpdateMinDimension(std::pair<int, int> p)
+{
+	//If that item is not the minimum
+	if (items[p.first].Getitem_min() != MinDimensionPieza)
+		return;
+	MinDimensionPieza = MAXIMUM_INT;
+	MaxMinDimensionPieza = 0;
+
+	for (int i = 0; i < batch_items; i++)
+	{
+		if (G_Vector_Items[i] != true)
+		{
+			if (items[i].Getitem_min() < MinDimensionPieza)
+				MinDimensionPieza = items[i].Getitem_min();
+			if (items[i].Getitem_min() > MaxMinDimensionPieza)
+				MaxMinDimensionPieza = items[i].Getitem_min();
+		}
+	}
+
+}
+
+void Glass::PrintProblem(string problem)
+{
+	double perro = 0;
+	printf("%s", problem.c_str());
+//	scanf("%f", &perro);
+
+}
+void Glass::EraseRectangleFromList(LRectangles &lista, GlassRectangle &R)
+{
+	LRectangles::iterator it;
+	for (it = lista.begin(); it != lista.end(); it++)
+	{
+		if ((*it).GetRectangle_id() == R.GetRectangle_id())
+			//		if (Overlap((*it).Getpos_x(), (*it).Getpos_y(), (*it).Getpos_X(), (*it).Getpos_Y(), R.Getpos_x(), R.Getpos_y(), R.Getpos_X(), R.Getpos_Y()))
+		{
+			it = lista.erase(it);
+			return;
+		}
+	}
+
+
+	//No tiene por qué borrar otros
+	//	PrintProblem("No puedo borrar ese elemento");
+}
+void Glass::ChangeRectangleFromList(LRectangles &lista, int width)
+{
+	LRectangles::iterator it;
+	for (it = lista.begin(); it != lista.end(); it++)
+	{
+		if ((*it).Getpos_X()>width)
+		{
+			//		(*it).Set_w((*it).Get_w() - ((*it).Getpos_X() - width));
+			(*it).Add_W(-((*it).Getpos_X() - width));
+
+		}
+	}
+
+
+	//No tiene por qué borrar otros
+	//	PrintProblem("No puedo borrar ese elemento");
+}
+void Glass::EraseRectangleFromList(LRectangles &lista, int id_rect)
+{
+	LRectangles::iterator it;
+	for (it = lista.begin(); it != lista.end(); it++)
+	{
+		if ((*it).GetRectangle_id() == id_rect)
+			//		if (Overlap((*it).Getpos_x(), (*it).Getpos_y(), (*it).Getpos_X(), (*it).Getpos_Y(), R.Getpos_x(), R.Getpos_y(), R.Getpos_X(), R.Getpos_Y()))
+		{
+			it = lista.erase(it);
+			return;
+		}
+	}
+
+
+	//No tiene por qué borrar otros
+	//	PrintProblem("No puedo borrar ese elemento");
+}
+void Glass::TransformarSolucionSimetrica(string filep, bool quitar)
+{
+	FILE *fin3;
+	G_Rotate_Solution.clear();
+	G_Solution_Rotated.clear();
+	G_first_time_node = false;
+
+	fin3 = fopen(filep.c_str(), "r+");
+	if (fin3 == NULL)
+	{
+		printf("Problemas al leer el archivo %s, no se encuentra el archivo", filep.c_str());
+		exit(4);
+	}
+	char kk[256];
+	fscanf(fin3, "%s\n", kk);
+	int bin, node, x1, y1, x2, y2, type, cut, parent;
+
+	do
+	{
+		fscanf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;", &bin, &node, &x1, &y1, &x2, &y2, &type, &cut);
+		if (cut != 0)
+		{
+			fscanf(fin3, "%d\n", &parent);
+		}
+		else
+		{
+			parent = -1;
+			fscanf(fin3, "\n");
+		}
+
+
+		Glass_Corte corte_temp;
+		corte_temp.bin = bin; 		corte_temp.node = node;
+		corte_temp.x1 = x1; 		corte_temp.y1 = y1;
+		corte_temp.width = x2; 		corte_temp.height = y2;
+		corte_temp.type = type; 		corte_temp.cut = cut;
+		corte_temp.parent = parent;
+		G_Solution_Rotated.push_front(corte_temp);
+
+
+	} while (node != (G_Total_Nodes - 1));
+	fclose(fin3);
+	int waste_strip = 0;
+	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
+	{
+		if (quitar == true)
+		{
+			//Do not add the cut's of the first bin with waste
+			if (!((*it).bin == 0 && (*it).cut == 1 && ((*it).type == (-1) || (*it).type == (-3)) && (*it).x1 != 0))
+				G_Rotate_Solution.push_back((*it));
+			else
+				waste_strip = (*it).width;
+		}
+		else
+			G_Rotate_Solution.push_back((*it));
+
+
+	}
+	//	int MaxWidth=MaxWidthLastPiece(G_Rsol_Items);
+	G_Solution_Rotated.clear();
+
+
+	int Bin_actual = 0;
+	//Ya tenemos leída la solución y además en orden inverso
+	int pos_ini_strip = -1;
+	int pos_fin_strip = 0;
+	int pos_ini_bin = 0;
+	int pos_fin_bin = 0;
+	G_rotated_nodes = 0;
+	int Node_Bin = 0;
+
+
+	Glass_Corte corte_temp;
+	corte_temp.bin = 0;
+	corte_temp.node = 0;
+	corte_temp.x1 = 0;
+	corte_temp.y1 = 0;
+	corte_temp.width = plate_w;
+	corte_temp.height = plate_h;
+	corte_temp.type = -2;
+	corte_temp.cut = 0;
+	corte_temp.parent = -1;
+	G_Solution_Rotated.push_back(corte_temp);
+	G_rotated_nodes++;
+
+
+	for (int i = 0; i<G_Rotate_Solution.size() - 1; i++)
+	{
+
+		//Is the bin packing
+		if (G_Rotate_Solution[i].cut == 0)
+		{
+
+			pos_ini_bin = max(pos_fin_bin, pos_ini_bin);
+			pos_fin_bin = i;
+			//If we have change of bin
+			pos_ini_strip = i;
+
+			//			pos_ini_bin = i;
+
+			Bin_actual++;
+			Node_Bin = G_rotated_nodes;
+			G_Solution_Rotated.push_back(G_Rotate_Solution[i]);
+			G_rotated_nodes++;
+		}
+		else
+		{
+
+			if (G_Rotate_Solution[i].height == plate_h)
+			{
+				if (G_Rotate_Solution[i].type == -1)
+				{
+
+					//					ChangeDimensionsSimetry(G_Rotate_Solution[i]);
+					G_Solution_Rotated.push_back(G_Rotate_Solution[i]);
+					G_rotated_nodes++;
+					pos_ini_strip++;
+
+
+				}
+				else
+				{
+
+					pos_ini_strip = max(pos_fin_strip, pos_ini_strip);
+					pos_fin_strip = i;
+
+					G_Solution_Rotated.push_back(G_Rotate_Solution[i]);
+
+					G_rotated_nodes++;
+					CorteHorizontalSimetry(pos_ini_strip, pos_fin_strip);
+				}
+				//				ChangeDimensionsSimetry(G_Rotate_Solution[i]);
+				//				G_Solution_Rotated.push_back(G_Rotate_Solution[i]);
+
+			}
+
+
+		}
+
+
+
+
+	}
+
+	//Verificar nodos
+	//linux quitar
+	/*
+	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
+	{
+	int buscar = (*it).node;
+	bool encontrado = false;
+	for (int i = 0; i < (G_Rotate_Solution.size() - 1) && encontrado==false; i++)
+	{
+	if (G_Rotate_Solution[i].node == buscar)
+	{
+	encontrado = true;
+	break;
+	}
+	}
+
+	}
+	for (int i = 0; i < (G_Rotate_Solution.size() - 1) ; i++)
+	{
+	int buscar = G_Rotate_Solution[i].node;
+	bool encontrado = false;
+
+	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end() && encontrado == false; it++)
+	{
+	if ((*it).node == buscar)
+	{
+	encontrado = true;
+	break;
+	}
+
+	}
+
+	}
+	*/
+	//If change the bin, and nodes
+	Bin_actual = 0;
+	int node_Bin = 0;
+	int node_strip = 0;
+	int node_width = 0;
+	int node_trim = 0;
+	G_rotated_nodes = 0;
+	G_Solution_Rotated.front().bin = NumberOfPlates + 1;
+	G_Solution_Rotated.back().type = -3;
+	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
+	{
+		//Quitar trozo
+
+		if ((*it).bin == NumberOfPlates && (*it).type == -3)
+			(*it).type = -1;
+
+		(*it).bin = NumberOfPlates - (*it).bin;
+		(*it).node = G_rotated_nodes;
+
+		if ((*it).cut == 0)
+		{
+
+			(*it).bin++;
+			node_Bin = G_rotated_nodes;
+		}
+		else
+		{
+			//Vertical Strip
+			if ((*it).cut == 1)
+			{
+				(*it).parent = node_Bin;
+				node_strip = G_rotated_nodes;
+			}
+			else
+			{
+				if ((*it).cut == 2)
+				{
+					(*it).parent = node_strip;
+					node_width = G_rotated_nodes;
+				}
+				else
+				{
+					if ((*it).cut == 3)
+					{
+						(*it).parent = node_width;
+						node_trim = G_rotated_nodes;
+
+					}
+					else
+					{
+						(*it).parent = node_trim;
+					}
+				}
+
+			}
+		}
+		ChangeDimensionsSimetry(*it);
+
+		if ((*it).bin == NumberOfPlates && (*it).cut != 0)
+		{
+			(*it).x1 -= waste_strip;
+			if ((*it).type == (-3))
+				(*it).width += waste_strip;
+		}
+		G_rotated_nodes++;
+	}
+
+	//I have to add the last strip when quitar ==true
+	if (quitar == false)
+	{
+		int cont = 0;
+		for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++, cont++)
+		{
+			if ((*it).type == (-3) && cont != (G_Solution_Rotated.size() - 1))
+				(*it).type = -1;
+		}
+	}
+/*	else
+	{
+		int LastBin = G_Solution_Rotated.back().bin;
+		int LastNodeBin = 0;
+		//Find the last bin and strip
+		for (std::list< Glass_Corte>::reverse_iterator it = G_Solution_Rotated.rbegin(); it != G_Solution_Rotated.rend() && (*it).bin ==LastBin; it++)
+		{
+			LastNodeBin = (*it).node;
+
+		}
+		Glass_Corte corte_temp;
+		corte_temp.bin = LastBin;
+		corte_temp.node = G_rotated_nodes;
+		corte_temp.x1 = plate_w-waste_strip;
+		corte_temp.y1 = 0;
+		corte_temp.width = waste_strip;
+		corte_temp.height = plate_h;
+		corte_temp.type = -3;
+		corte_temp.cut = 1;
+		corte_temp.parent = LastNodeBin;
+		G_Solution_Rotated.push_back(corte_temp);
+		G_rotated_nodes++;
+	}*/
+	//
+
+	//Write the rotated solution
+
+	fin3 = fopen(filep.c_str(), "w+");
+	if (fin3 == NULL)
+	{
+		printf("Problemas al leer el archivo %s, no se encuentra el archivo de solution", name_instance.c_str());
+		exit(4);
+	}
+
+
+	//	PLATE_ID	NODE_ID	X	Y	WIDTH	HEIGHT	TYPE	CUT	PARENT
+	fprintf(fin3, "PLATE_ID;NODE_ID;X;Y;WIDTH;HEIGHT;TYPE;CUT;PARENT\n");
+	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
+	{
+		if ((*it).cut != 0)
+			fprintf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).bin,
+			(*it).node, (*it).x1, (*it).y1, (*it).width,
+				(*it).height, (*it).type, (*it).cut, (*it).parent);
+		else
+			fprintf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;\n", (*it).bin,
+			(*it).node, (*it).x1, (*it).y1, (*it).width,
+				(*it).height, (*it).type, (*it).cut);
+
+	}
+
+	fclose(fin3);
+
+}
+void Glass::EscribirSolutionRotated(string filep, std::list< Glass_Corte> &lista)
+{
+	//Write the rotated solution
+	FILE *fin3;
+	fin3 = fopen(filep.c_str(), "w+");
+	if (fin3 == NULL)
+	{
+		printf("Problemas al leer el archivo %s, no se encuentra el archivo de solution", name_instance.c_str());
+		exit(4);
+	}
+
+
+	//	PLATE_ID	NODE_ID	X	Y	WIDTH	HEIGHT	TYPE	CUT	PARENT
+	fprintf(fin3, "PLATE_ID;NODE_ID;X;Y;WIDTH;HEIGHT;TYPE;CUT;PARENT\n");
+	for (std::list< Glass_Corte>::iterator it = lista.begin(); it != lista.end(); it++)
+	{
+		if ((*it).cut != 0)
+			fprintf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).bin,
+			(*it).node, (*it).x1, (*it).y1, (*it).width,
+				(*it).height, (*it).type, (*it).cut, (*it).parent);
+		else
+			fprintf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;\n", (*it).bin,
+			(*it).node, (*it).x1, (*it).y1, (*it).width,
+				(*it).height, (*it).type, (*it).cut);
+
+	}
+
+	fclose(fin3);
+}
+void Glass::CorteHorizontalSimetry(int ini, int fin)
+{
+
+	int pos_ini_horizontal = ini;
+	int pos_fin_horizontal = 0;
+	//It is a strip with only a piece
+	if (ini == (fin - 1)) return;
+	for (int i2 = ini; i2<fin; i2++)
+	{
+		if (G_Rotate_Solution[i2].cut == 2)
+		{
+			G_Solution_Rotated.push_back(G_Rotate_Solution[i2]);
+			G_rotated_nodes++;
+			//Other strip inside
+			if (G_Rotate_Solution[i2].type == -2)
+			{
+				pos_ini_horizontal = max(pos_fin_horizontal, pos_ini_horizontal);
+				pos_fin_horizontal = i2;
+				CorteVerticalSimetry(pos_ini_horizontal, pos_fin_horizontal);
+			}
+			else
+			{
+
+				pos_ini_horizontal++;
+				ini++;
+
+			}
+
+		}
+	}
+}
+void Glass::CorteVerticalSimetry(int ini, int fin)
+{
+	//It is a strip with only a piece
+	if (ini == fin) return;
+	int pos_ini_vertical = ini;
+	int pos_fin_vertical = 0;
+	//It is a strip with only a piece
+	if (ini == (fin - 1)) return;
+	for (int i3 = ini; i3<fin; i3++)
+	{
+		if (G_Rotate_Solution[i3].cut == 3)
+		{
+			G_Solution_Rotated.push_back(G_Rotate_Solution[i3]);
+
+			G_rotated_nodes++;
+			//Other strip inside
+			if (G_Rotate_Solution[i3].type == -2)
+			{
+				pos_ini_vertical = max(pos_fin_vertical, pos_ini_vertical);
+				pos_fin_vertical = i3;
+				/*				if (pos_ini_vertical == 0 && ini==0)
+				{
+				pos_ini_vertical = -1;
+				//					G_first_time_node = true;
+				}*/
+				if (pos_ini_vertical == 0 &&
+					G_Rotate_Solution[0].parent == G_Solution_Rotated.back().node)
+					pos_ini_vertical = -1;
+				for (int i4 = pos_ini_vertical + 1; i4 < pos_fin_vertical; i4++)
+				{
+					if (EstaYaPuesto(G_Rotate_Solution[i4].node) == false)
+					{
+						G_Solution_Rotated.push_back(G_Rotate_Solution[i4]);
+
+						G_rotated_nodes++;
+					}
+				}
+
+				if (pos_ini_vertical < 0)
+					pos_ini_vertical = 0;
+			}
+			else
+			{
+				if (pos_ini_vertical != 0)
+				{
+					pos_ini_vertical = max(i3, pos_ini_vertical);
+				}
+				//			pos_ini_vertical++;
+
+			}
+
+		}
+	}
+}
+bool Glass::EstaYaPuesto(int buscar)
+{
+
+	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
+	{
+		if ((*it).node == buscar)
+			return true;
+
+	}
+	return false;
+}
+void Glass::ChangeDimensionsSimetry(Glass_Corte &d)
+{
+	int newx1 = plate_w - d.x1 - d.width;
+	int newy1 = plate_h - d.y1 - d.height;
+	d.x1 = newx1;
+	d.y1 = newy1;
+}
+//This function give back the new rectangle that we have to pack
+/*GlassRectangle * AsignarRectangulo(GlassRectangle &rectangulo)
+{
+
+};*/
+
+
+
+void Glass::JointItems()
+{
+	//	printf("Llego aquí  batch %d\n\n\n", batch_items);
+	if (G_Rotate == false)
+	{
+		for (register int i = 0; i < batch_items - 2; i++)
+		{
+			int equals = 0;
+			bool end = false;
+			for (register int j = i + 1; j < batch_items - 1 && end != true; j++)
+			{
+
+				if ((items[i].Getitem_stack() == items[j].Getitem_stack()) &&
+					(items[i].Getitem_h() == items[j].Getitem_h()) &&
+					(items[i].Getitem_w() == items[j].Getitem_w()))
+				{
+					equals++;
+					continue;
+				}
+				end = true;
+			}
+			if (equals == 0)
+				continue;
+			//		printf("Llego aquí %d \t%d\n\n\n",i,batch_items);
+			for (; equals >= 0; equals--, i++)
+			{
+				items[i].Setitem_num(equals + 1);
+			}
+
+		}
+	}
+	else
+	{
+		for (register int i = batch_items - 1; i >= 1; i--)
+		{
+			int equals = 0;
+			bool end = false;
+			for (register int j = i - 1; j >= 0 && end != true; j--)
+			{
+
+				if ((items[i].Getitem_stack() == items[j].Getitem_stack()) &&
+					(items[i].Getitem_h() == items[j].Getitem_h()) &&
+					(items[i].Getitem_w() == items[j].Getitem_w()))
+				{
+					equals++;
+					continue;
+				}
+				end = true;
+			}
+			if (equals == 0)
+				continue;
+			//		printf("Llego aquí %d \t%d\n\n\n",i,batch_items);
+			for (; equals >= 0; equals--, i--)
+			{
+				items[i].Setitem_num(equals + 1);
+			}
+
+		}
+	}
+
+}
+
+
+
+
+/***************************/
+
+Coordinates Glass::ItemGreaterRNH_J(GlassRectangle &R)
+{
+	bool horizontal = true;
+	int maximum = 0;
+	int maximum2 = 0;
+	int max_item = -1;
+	int max_copies = 1;
+	std::pair<int, int>  pk3(-1, -1);
+	std::pair<int, int>  pk2(1, 1);
+	Coordinates pk(pk3, pk2);
+	int Y = R.Get_y();
+	int multiplier = 1;
+	bool before_greater = false;
+	To_the_Top = false;
+	//IT has to be on the top
+	if ((R.Getsidecut() >= 3 && R.Get_y() != R.Getpos_y())
+		|| ((R.Get_y() - R.Getpos_y()) >= waste_min && R.Get_y() >= 1210 + get_random(1, 10) * 150))
+	{
+		//We have to place to the top then we have to ask about this.
+		Y = R.Getpos_Y();
+		multiplier = 0;
+
+
+	}
+
+	//	if (deterministic == false && get_random(0, 2) == 0 && R.Get_y() != 0 && max_item == (-1))
+	if (deterministic == false && get_random(0, 2) == 0 && R.Get_y() != 0 && R.Getpos_X() != plate_w && max_item == (-1))
+	{
+
+		before_greater = true;
+		Coordinates p2 = ComputeLowestRectangle_H(R);
+		if (p2.first.second != -1)
+		{
+			wider = true;
+			return p2;
+		}
+
+	}
+	int to_copies = 1;
+	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
+	{
+		int i = (*it);
+		//If there are items in this stacks
+		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
+		{
+			if (one_item_each == true)
+				to_copies = 1;
+			else
+				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
+			for (register int copies = 1; copies <= to_copies; copies++)
+			{
+				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
+				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
+				//Randomness
+
+
+				if (deterministic == false && max_item != (-1) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
+				{
+					if (get_random(0, G_Vector_Size_Stacks[i] - G_Vector_Stacks[i]) <= (Para_Random)) //Cambiado
+						continue;
+				}
+				//If can not fii in that hole
+				if (min_dim_item*copies > R.Get_w() ||
+					min_dim_item > R.Get_h())
+					continue;
+				else
+				{
+
+					//both measures are possible
+					if (max_dim_item*copies <= R.Get_w() &&
+						max_dim_item <= R.Get_h() &&
+						max_dim_item*copies <= max1Cut)
+					{
+						if ((max_dim_item*copies > maximum)
+							|| (max_dim_item*copies == maximum && min_dim_item > maximum2))
+						{
+
+							if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
+								&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
+							{
+								max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+								max_copies = copies;
+								maximum = max_dim_item * copies;
+								maximum2 = min_dim_item;
+								horizontal = true;
+							}
+							else
+							{
+								if (((min_dim_item*copies <= max1Cut) &&
+									(min_dim_item*copies > maximum))
+									|| (min_dim_item*copies == maximum && max_dim_item > maximum2))
+								{
+									if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
+										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
+
+									{
+										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+										max_copies = copies;
+										maximum = min_dim_item * copies;
+										maximum2 = max_dim_item;
+										horizontal = false;
+									}
+								}
+							}
+
+						}
+
+					}
+					else
+					{
+						if (max_dim_item*copies <= R.Get_w()
+							&& max_dim_item*copies <= max1Cut)
+						{
+							if ((max_dim_item*copies > maximum)
+								|| (max_dim_item*copies == maximum && min_dim_item > maximum2))
+							{
+								if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
+									&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
+								{
+									max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+									max_copies = copies;
+									maximum = max_dim_item * copies;
+									maximum2 = min_dim_item;
+									horizontal = true;
+								}
+							}
+						}
+						else
+						{
+							if (max_dim_item*copies <= R.Get_h())
+							{
+								if (((min_dim_item*copies <= max1Cut) &&
+									(min_dim_item*copies > maximum))
+									|| (min_dim_item*copies == maximum && max_dim_item > maximum2))
+								{
+									if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
+										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
+									{
+										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+										max_copies = copies;
+										maximum = min_dim_item * copies;
+										maximum2 = max_dim_item;
+										horizontal = false;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+	if (max_item == (-1) && R.Getpos_X() != plate_w && before_greater != true)
+	{
+		if (R.Getpos_X() != plate_w)
+			return ComputeLowestRectangle_H(R);
+		else
+		{
+			if (R.Getpos_Y() != plate_h)
+				return ComputeLowestRectangle_V(R);
+		}
+
+	}
+	To_the_Top = false;
+	if (multiplier == 0) To_the_Top = true;
+	pk.first.first = max_item;
+	if (max_item != (-1))
+		pk.first.second = horizontal;
+	pk.second.first = max_copies;
+	pk.second.second = 1;
+	return pk;
+}
+//The lowest rectangel than exceeds the widt
+Coordinates Glass::ComputeLowestRectangle_H(GlassRectangle &R)
+{
+
+	int Min = MAXIMUM_INT;
+	std::pair<int, int>  pk3(-1, 0);
+	std::pair<int, int>  pk2(1, 1);
+	Coordinates pk(pk3, pk2);
+	pk.first.first = -1;
+	pk.first.second = -1;
+	int to_copies = 1;
+	int Y = R.Get_y();
+	int multiplier = 1;
+	//Compute lowest in this rectangle
+	//	for (register int i = 0; i < stack_nbr; i++)
+	//	{
+
+	if (R.Getsidecut() >= 3 && R.Get_y() != R.Getpos_y())
+	{
+		//We have to place to the top then we have to ask about this.
+		Y = R.Getpos_Y();
+		multiplier = 0;
+
+	}
+	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
+	{
+		int i = (*it);
+
+		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
+		{
+			if (one_item_each == true)
+				to_copies = 1;
+			else
+				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
+			for (register int copies = 1; copies <= to_copies; copies++)
+			{
+				if (deterministic == false && (Min != MAXIMUM_INT) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
+					continue;
+				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
+				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
+
+
+				if (min_dim_item > R.Get_h())
+					continue;
+				if (max_dim_item*copies <= R.Get_w())
+					continue;
+
+				if (min_dim_item*copies> R.Get_w() && max_dim_item <= R.Get_h() && (R.Get_x() + min_dim_item * copies) <= min(plate_w, Start_strip + max1Cut))
+				{
+					if (!(((max_dim_item) <= (R.Get_h() - waste_min)) || ((max_dim_item) == R.Get_h())))
+						continue;
+
+
+
+
+					//		if (min_dim_item*copies < Min && Overlap(R.Get_x(),R.Get_y(),R.Get_x()+ (min_dim_item*copies),R.Get_y()+max_dim_item)==false)
+					if (min_dim_item*copies < Min && Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item) == false)
+					{
+
+						Min = min_dim_item * copies;
+						pk.first.first = -1;
+						pk.first.second = G_Matrix_Items[i][G_Vector_Stacks[i]];
+						pk.second.first = false;
+						pk.second.second = copies;
+					}
+				}
+				else
+				{
+					if (max_dim_item*copies> R.Get_w() && min_dim_item <= R.Get_h() && (R.Get_x() + max_dim_item * copies) <= min(plate_w, Start_strip + max1Cut))
+					{
+						if (!(((min_dim_item) <= (R.Get_h() - waste_min)) || ((min_dim_item) == R.Get_h())))
+							continue;
+
+						if (max_dim_item*copies < Min && Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item) == false)
+						{
+							Min = max_dim_item * copies;
+							pk.first.first = -1;
+							pk.first.second = G_Matrix_Items[i][G_Vector_Stacks[i]];
+							pk.second.first = true;
+							pk.second.second = copies;
+						}
+					}
+
+				}
+
+			}
+		}
+	}
+
+	if (Min == MAXIMUM_INT || ((Min + R.Get_x()) > (plate_w - waste_min) && (Min + R.Get_x()) <plate_w) || (Min + R.Get_x() > (min(plate_w, Start_strip + max1Cut))))
+		//	||
+		//		((Min -R.Get_w())<20 && (Min - R.Get_w())>0))
+	{
+		pk.first.second = -1;
+	}
+	To_the_Top = false;
+	if (multiplier == 0) To_the_Top = true;
+	return pk;
+}
+//The lowest rectangel than exceeds the height
+Coordinates Glass::ComputeLowestRectangle_V(GlassRectangle &R)
+{
+	int Min = MAXIMUM_INT;
+	std::pair<int, int>  pk3(-1, 0);
+	std::pair<int, int>  pk2(1, 1);
+	Coordinates pk(pk3, pk2);
+	pk.first.first = -1;
+	pk.first.second = -1;
+	int to_copies = 1;
+	//Compute lowest in this rectangle
+	//	for (register int i = 0; i < stack_nbr; i++)
+	//	{
+
+	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
+	{
+		int i = (*it);
+
+		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
+		{
+			if (one_item_each == true)
+				to_copies = 1;
+			else
+				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
+			for (register int copies = 1; copies <= to_copies; copies++)
+			{
+				if (deterministic == false && (Min != MAXIMUM_INT) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
+					continue;
+				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
+				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
+
+				if (min_dim_item > R.Get_w())
+					continue;
+				if (max_dim_item*copies <= R.Get_h())
+					continue;
+
+				if (min_dim_item> R.Get_h() && max_dim_item*copies <= R.Get_w() && (R.Get_y() + min_dim_item) <= plate_h)
+				{
+					if (!((max_dim_item*copies <= (R.Get_w() - waste_min)) || (max_dim_item*copies == R.Get_w())))
+						continue;
+					if (min_dim_item < Min && Overlap(R.Get_x(), R.Get_y(), R.Get_x() + (max_dim_item*copies), R.Get_y() + min_dim_item) == false)
+					{
+						Min = min_dim_item;
+						pk.first.first = -1;
+						pk.first.second = G_Matrix_Items[i][G_Vector_Stacks[i]];
+						pk.second.first = true;
+						pk.second.second = copies;
+					}
+				}
+				else
+				{
+					if (max_dim_item> R.Get_h() && min_dim_item*copies <= R.Get_w() && (R.Get_y() + max_dim_item) <= plate_h)
+					{
+						if (!((min_dim_item*copies <= (R.Get_w() - waste_min)) || (min_dim_item*copies == R.Get_w())))
+							continue;
+						if (max_dim_item < Min && Overlap(R.Get_x(), R.Get_y(), R.Get_x() + (min_dim_item*copies), R.Get_y() + max_dim_item) == false)
+						{
+							Min = max_dim_item;
+							pk.first.first = -1;
+							pk.first.second = G_Matrix_Items[i][G_Vector_Stacks[i]];
+							pk.second.first = false;
+							pk.second.second = copies;
+						}
+					}
+
+				}
+
+			}
+		}
+	}
+	if (Min == MAXIMUM_INT || ((Min + R.Get_y()) > (plate_h - waste_min) && (Min + R.Get_y()) <plate_h))
+		//		||
+		//		((Min - R.Get_h())<20 && (Min - R.Get_h())>0)) 
+	{
+		pk.first.second = -1;
+	}
+
+	return pk;
+}
+
+Coordinates Glass::ItemGreaterRNV_J(GlassRectangle &R)
+{
+
+	bool horizontal = false;
+	int maximum2 = 0;
+	int maximum = 0;
+	int max_item = -1;
+	int max_copies = 1;
+	std::pair<int, int>  pk3(-1, -1);
+	std::pair<int, int>  pk2(1, 1);
+	Coordinates pk(pk3, pk2);
+	int Y = R.Get_y();
+	int multiplier = 1;
+	bool before_greater = false;
+	if ((R.Getsidecut() >= 3 && R.Get_y() != R.Getpos_y())
+		|| ((R.Get_y() - R.Getpos_y()) >= waste_min && R.Get_y() >= 1000 + get_random(1, 20) * 100))
+	{
+		//We have to place to the top then we have to ask about this.
+		Y = R.Getpos_Y();
+		multiplier = 0;
+
+	}
+	//	if (deterministic == false && get_random(0, 2) == 0 && R.Get_y() != 0 && R.Getpos_Y() != plate_h && max_item == (-1))
+	if (deterministic == false && get_random(0, 2) == 0 && R.Getpos_Y() != plate_h && max_item == (-1))
+	{
+		before_greater = true;
+		Coordinates p2 = ComputeLowestRectangle_V(R);
+		if (p2.first.second != -1)
+		{
+			higher = true;
+			return p2;
+		}
+
+	}
+	int to_copies = 1;
+	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
+	{
+		int i = (*it);
+		//If there are items in this stacks
+		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
+		{
+			if (one_item_each == true)
+				to_copies = 1;
+			else
+				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
+
+			for (register int copies = 1; copies <= to_copies; copies++)
+			{
+
+				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
+				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
+
+				if (deterministic == false && max_item != (-1) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
+				{
+					if (get_random(0, G_Vector_Size_Stacks[i] - G_Vector_Stacks[i]) <= Para_Random)
+
+						continue;
+				}
+				//If can not fii in that hole
+				if (min_dim_item*copies > R.Get_w() ||
+					min_dim_item > R.Get_h())
+					continue;
+				else
+				{
+
+					//both measures are possible
+					if (max_dim_item*copies <= R.Get_w() &&
+						max_dim_item <= R.Get_h() &&
+						max_dim_item*copies <= max1Cut)
+					{
+						if ((max_dim_item > maximum)
+							|| (max_dim_item == maximum && min_dim_item*copies > maximum2))
+						{
+							if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
+								&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
+							{
+								max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+								max_copies = copies;
+								maximum = max_dim_item;
+								maximum2 = min_dim_item * copies;
+								horizontal = false;
+							}
+							else
+							{
+								if ((min_dim_item > maximum)
+									|| (min_dim_item == maximum && max_dim_item*copies > maximum2))
+								{
+									if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
+										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
+									{
+										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+										max_copies = copies;
+										maximum = min_dim_item;
+										maximum2 = max_dim_item * copies;
+										horizontal = true;
+									}
+								}
+							}
+						}
+
+					}
+					else
+					{
+						//one measure is possible
+						if (max_dim_item*copies <= R.Get_w() &&
+							max_dim_item*copies <= max1Cut)
+						{
+							if ((min_dim_item > maximum)
+								|| (min_dim_item == maximum && max_dim_item*copies > maximum2))
+							{
+								if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
+									&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
+								{
+									max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+									max_copies = copies;
+									maximum = min_dim_item;
+									maximum2 = max_dim_item * copies;
+									horizontal = true;
+								}
+							}
+						}
+						else
+						{
+							if (max_dim_item <= R.Get_h() &&
+								min_dim_item*copies <= max1Cut)
+							{
+
+								if ((max_dim_item > maximum)
+									|| (max_dim_item == maximum && min_dim_item*copies > maximum2))
+								{
+									if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
+										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
+									{
+										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+										max_copies = copies;
+										maximum = max_dim_item;
+										maximum2 = min_dim_item * copies;
+										horizontal = false;
+									}
+								}
+							}
+						}
+					}
+				}
+
+			}
+		}
+
+	}
+	//	if (max_item == (-1) && R.Getnumdefects() == 0 && before_greater != true)
+	if (max_item == (-1) && before_greater != true)
+	{
+		if (R.Getpos_Y() != plate_h)
+			return ComputeLowestRectangle_V(R);
+		else
+		{
+			if (R.Getpos_X() != plate_w)
+				return ComputeLowestRectangle_H(R);
+
+		}
+
+	}
+	To_the_Top = false;
+	if (multiplier == 0) To_the_Top = true;
+	pk.first.first = max_item;
+	if (max_item != -1)
+		pk.first.second = horizontal;
+	pk.second.first = max_copies;
+	pk.second.second = 1;
+	return pk;
+}
+Coordinates Glass::ItemGreaterRNAreaV_J(GlassRectangle &R)
+{
+	bool horizontal = false;
+	int maximum2 = 0;
+	int maximum = 0;
+	int max_item = -1;
+	int max_copies = 1;
+	std::pair<int, int>  pk3(-1, -1);
+	std::pair<int, int>  pk2(1, 1);
+	Coordinates pk(pk3, pk2);
+	int Y = R.Get_y();
+	int multiplier = 1;
+	if (R.Getsidecut() >= 3 && R.Get_y() != R.Getpos_y())
+	{
+		//We have to place to the top then we have to ask about this.
+		Y = R.Getpos_Y();
+		multiplier = 0;
+
+	}
+	int to_copies = 1;
+	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
+	{
+		int i = (*it);
+
+
+		//If there are items in this stacks
+		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
+		{
+			if (one_item_each == true)
+				to_copies = 1;
+			else
+				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
+			for (register int copies = 1; copies <= to_copies; copies++)
+			{
+				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
+				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
+				if (deterministic == false && max_item != (-1) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
+				{
+					if (get_random(0, G_Vector_Size_Stacks[i] - G_Vector_Stacks[i]) <= Para_Random)
+						continue;
+				}
+				//If can not fii in that hole
+				if (min_dim_item*copies > R.Get_w() ||
+					min_dim_item > R.Get_h())
+					continue;
+				else
+				{
+
+					//both measures are possible
+					if (max_dim_item*copies <= R.Get_w() &&
+						max_dim_item <= R.Get_h() &&
+						max_dim_item*copies<max1Cut)
+					{
+						if ((items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies > maximum)
+							|| (items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies == maximum && min_dim_item > maximum2))
+						{
+							if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
+								&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
+							{
+								max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+								max_copies = copies;
+								maximum = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies;
+								maximum2 = min_dim_item;
+								horizontal = false;
+							}
+							else
+							{
+								if ((items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies > maximum)
+									|| (items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies == maximum && max_dim_item > maximum2))
+								{
+									if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
+										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
+									{
+										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+										max_copies = copies;
+										maximum = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area();
+										maximum2 = max_dim_item * copies;
+										horizontal = true;
+									}
+								}
+							}
+						}
+
+					}
+					else
+					{
+						//one measure is possible
+						if (max_dim_item*copies <= R.Get_w() &&
+							max_dim_item*copies <= max1Cut)
+						{
+							if ((items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies > maximum)
+								|| (items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies == maximum && min_dim_item > maximum2))
+							{
+								if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
+									&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
+								{
+									max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+									max_copies = copies;
+									maximum = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies;
+									maximum2 = min_dim_item;
+									horizontal = true;
+								}
+							}
+						}
+						else
+						{
+							if (max_dim_item <= R.Get_h() &&
+								min_dim_item*copies <= max1Cut)
+							{
+
+								if ((items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies > maximum)
+									|| (items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies == maximum && max_dim_item > maximum2))
+								{
+									if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
+										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
+									{
+										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
+										max_copies = copies;
+										maximum = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies;
+										maximum2 = max_dim_item;
+										horizontal = false;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+	if (max_item == (-1)) //Poner ComputeLowestRectangle lo de la perdida
+						  //	if (max_item == (-1) && R.Getnumdefects() == 0 )
+	{
+		if (R.Getpos_Y() != plate_h)
+			return ComputeLowestRectangle_V(R);
+		else
+		{
+			if (R.Getpos_X() != plate_w)
+				return ComputeLowestRectangle_H(R);
+		}
+	}
+	To_the_Top = false;
+	if (multiplier == 0) To_the_Top = true;
+	pk.first.first = max_item;
+	if (max_item != -1)
+		pk.first.second = horizontal;
+	pk.second.first = max_copies;
+	pk.second.second = 1;
+	return pk;
+}
+
+//Write solutions
+
+
 //From a list of pieces, create the solution
-void Glass::MakeFileTextSolution(string path)
+void Glass::MakeFileTextSolutionNew(string path)
 {
 	//	return;
 	//	RsolType 2 when starts a piece
@@ -4189,6 +6962,8 @@ void Glass::MakeFileTextSolution(string path)
 
 
 		}
+		if ((*it).iditem() == 162)
+			int kk = 9;
 		//If the item is down and it is a vertical cut
 		//		if (((*it)[2] == 0 || NothingDown((it)) == true) )
 		//Let start vertical strip
@@ -4300,7 +7075,8 @@ void Glass::MakeFileTextSolution(string path)
 				}
 			}
 			int node_ant = node;
-			if ((*it).RsolType() != 0)
+			//	if ((*it).RsolType() != 0)//change 050119
+			if ((*it).RsolType() >= 0)//change 050119
 			{
 
 				//				WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), from_horizontal_strip, (*it).X(), to_horizontal_strip, (*it).plateId(), parent, node, parent_cut + 1); //V6
@@ -4309,9 +7085,11 @@ void Glass::MakeFileTextSolution(string path)
 
 			}
 			//Write vertical strip here
-			if ((to_horizontal_strip - from_horizontal_strip) != ((*it).Y() - (*it).y()) && ((*it).X() - from_vertical_strip) != (to_vertical_strip - from_vertical_strip))
+			//		if ((to_horizontal_strip - from_horizontal_strip) != ((*it).Y() - (*it).y()) && ((*it).X() - from_vertical_strip) != (to_vertical_strip - from_vertical_strip)) //change 050319
+			if ((to_horizontal_strip - from_horizontal_strip) != ((*it).Y() - (*it).y()) && ((*it).X() - (*it).x()) != (to_vertical_strip - from_vertical_strip))
 			{
-				if ((*it).RsolType() == 0)
+				//	if ((*it).RsolType() == 0) //change 050319
+				if ((*it).RsolType() < 0) //change 050319
 				{
 					if (node_ant < node)
 						parent = node - 1;
@@ -4329,6 +7107,7 @@ void Glass::MakeFileTextSolution(string path)
 					else
 						parent = node;
 					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).x(), from_horizontal_strip, (*it).X() - (*it).x(), to_horizontal_strip - from_horizontal_strip, -2, 3, parent - 1);
+					parent = node - 1;//change 040319
 					(*it).Setcut((*it).Getcut() + 1);
 					parent_cut = (*it).Getcut();
 					if ((*it).y() > from_horizontal_strip)
@@ -4346,7 +7125,7 @@ void Glass::MakeFileTextSolution(string path)
 				//				WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId(), parent, node, parent_cut + 1);
 				WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId(), parent, node, parent_cut);//change 190918
 
-				punto_x = from_vertical_strip;
+																																									 //punto_x = from_vertical_strip;//change 050319
 			}
 			punto_y = (*it).Y();
 			if (((*it).copiesx() == plate_w && NextRight(it, plate_w) > 0) && (*it).Getcut() == 3)
@@ -4388,7 +7167,8 @@ void Glass::MakeFileTextSolution(string path)
 					int tallest3 = BottomBeginning(it, to_vertical_strip, tallest);
 
 					//					int right=
-					if (tallest2 > tallest3)
+					//if (tallest2 > tallest3 )//change 050319
+					if (tallest2 > tallest3 || (from_horizontal_strip<tallest3 && tallest<to_horizontal_strip))//change 050319
 					{
 						to_horizontal_strip = tallest;
 					}
@@ -4658,6 +7438,589 @@ void Glass::MakeFileTextSolution(string path)
 	G_Total_Nodes = node;
 	fclose(file);
 }
+//From a list of pieces, create the solution
+void Glass::MakeFileTextSolution(string path)
+{
+	//	return;
+	//	RsolType 2 when starts a piece
+	//	Rsoltype 1 when it is the last one
+
+
+	FILE *file;
+	//	strcat(name_instance, "_solution.csv");
+
+	file = fopen(path.c_str(), "w+");
+	if (file == NULL)
+	{
+		printf("Problemas al leer el archivo %s, no se encuentra el archivo", name_instance.c_str());
+		exit(4);
+	}
+
+	int plateCod = -1, node = 0, parent = 0;
+	int from_vertical_strip = 0;
+	int to_vertical_strip = plate_w;
+	int node_vertical_strip = -1;
+	int node_horizontal_strip = -1;
+	int parent_cut_vertical_strip = -1;
+	bool vertical_strip = true;
+	int top_item = -1;
+	int node_plate = 0;
+	int right_item = 0;
+	int from_horizontal_strip = 0;
+	int to_horizontal_strip = plate_h;
+	int punto_x = 0;
+	int punto_y = 0;
+	int parent_cut = 0;
+	bool start_strip = false;
+	bool start_strip_vertical = false;
+
+
+
+	//	PLATE_ID	NODE_ID	X	Y	WIDTH	HEIGHT	TYPE	CUT	PARENT
+	fprintf(file, "PLATE_ID;NODE_ID;X;Y;WIDTH;HEIGHT;TYPE;CUT;PARENT\n");
+	for (std::list<GlassRsol > ::iterator it = G_Best_Rsol_Items.begin(); it != G_Best_Rsol_Items.end(); it++)
+	{
+		start_strip = false;
+		start_strip_vertical = false;
+
+		//Change of plate //I have to write the first block down
+		if ((*it).plateId() != plateCod)
+		{
+
+
+				if (to_horizontal_strip != (plate_h))
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", plateCod, node++, from_vertical_strip, from_horizontal_strip, to_vertical_strip - from_vertical_strip, plate_h - from_horizontal_strip, -1, 2, node_vertical_strip);
+				if (to_vertical_strip != (plate_w))
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", plateCod, node++, to_vertical_strip, 0, plate_w - to_vertical_strip, plate_h, -1, 1, node_plate);
+
+			/*if (to_horizontal_strip != (plate_h))
+			fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", plate-1, node++, from_vertical_strip, from_horizontal_strip, to_vertical_strip - from_vertical_strip, plate_h - from_horizontal_strip, -1, 2, node_vertical_strip);
+			if (to_vertical_strip != (plate_w))
+			fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", plate-1, node++, to_vertical_strip, 0, plate_w - to_vertical_strip, plate_h, -1, 1, node_plate);
+			*/
+			punto_x = 0;
+			punto_y = 0;
+			top_item = -1;
+			from_vertical_strip = 0;
+			to_vertical_strip = plate_w;
+			node_vertical_strip = -1;
+			parent_cut_vertical_strip = -1;
+			vertical_strip = true;
+			node_plate = node;
+			from_horizontal_strip = 0;
+			to_horizontal_strip = plate_h;
+			parent_cut = 0;
+			plateCod = (*it).plateId();
+			fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;\n", (*it).plateId(), node, 0, 0, plate_w, plate_h, -2, 0);
+			node++;
+
+		}
+		//the last item of the strip above
+		//change 080319
+		/*
+		if ((*it).copiesy() == 2 && to_vertical_strip == plate_w)
+		{
+		from_horizontal_strip = (*it).y();
+
+
+		}*/
+		if ((*it).iditem() == 158 && G_level >= 10)
+			int kk = 9;
+		//If the item is down and it is a vertical cut
+		//		if (((*it)[2] == 0 || NothingDown((it)) == true) )
+		//Let start vertical strip
+		if (((*it).copiesy() == 0) && ((*it).copiesx() != to_vertical_strip) && (*it).RsolType() != 1)
+			//			if (((*it).copiesy() == 0))
+		{
+
+			if (to_horizontal_strip != (plate_h))
+				fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", plateCod, node++, from_vertical_strip, from_horizontal_strip, to_vertical_strip - from_vertical_strip, plate_h - from_horizontal_strip, -1, 2, node_vertical_strip);
+
+
+			vertical_strip = true;
+			from_vertical_strip = to_vertical_strip;
+			if (from_vertical_strip == plate_w)
+				from_vertical_strip = 0;
+			//If vertical cut
+			//			to_vertical_strip = (*it)[7];
+			to_vertical_strip = (*it).copiesx();
+
+			//It could have an strip before this
+			//		if ((*it).x() != from_vertical_strip)
+			if ((*it).x() != from_vertical_strip && (to_horizontal_strip != (plate_h) || (G_Rotate==true && node==1)))//change 060319
+			{
+				int Min = ThereIsSomethingInThisStrip(it, from_vertical_strip, (*it).x(), to_vertical_strip);
+				if (Min>from_vertical_strip)
+				{
+					WriteWastesLeft(file, from_vertical_strip, punto_y, (*it).X(), (*it).Y(), Min, 0, (*it).X(), to_horizontal_strip, (*it).plateId(), node_plate, node, 0);
+					from_vertical_strip = Min;
+				}
+			}
+			//		if ((*it)[6] == 2)
+			//		to_vertical_strip = plate_w;
+			//			if ((*it).Getcut() == 2 && (*it).RsolType() == 0)
+			//			to_vertical_strip = plate_w;
+			/*			if ((*it)[6] == 1)
+			{
+			//			to_vertical_strip = (*it)[3] * (*it)[7];
+			to_vertical_strip = (*it)[3] ;
+			}
+			else
+			to_vertical_strip = plate_w;
+			*/			punto_x = from_vertical_strip;
+			punto_y = 0;
+			from_horizontal_strip = punto_y;
+			//			to_horizontal_strip = (*it)[4];
+			//			to_horizontal_strip = BottomInTheStripNext(it, to_vertical_strip);
+			// change for
+			to_horizontal_strip = BottomInTheStripNext(it, to_vertical_strip);
+			int tallest = TallestInTheStrip(it, to_vertical_strip);
+
+			if (tallest < to_horizontal_strip)
+			{
+				//The tallest in the strip beginnning
+				int tallest2 = TallestBeginning(it, to_vertical_strip, tallest);
+				int tallest3 = BottomBeginning(it, to_vertical_strip, tallest);
+
+				//					int right=
+				if (tallest2 > tallest3 || NoItemBetweenTallMin(it, to_vertical_strip, to_horizontal_strip) == false)
+				{
+					to_horizontal_strip = tallest;
+				}
+				//	int right = NextRightBottom(it, to_vertical_strip);
+
+			}
+
+
+			node_vertical_strip = node;
+			parent_cut_vertical_strip = 1;
+			//Write the vertical strip
+			parent = node_vertical_strip;
+			parent_cut = 1;
+			parent = node;
+			fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, from_vertical_strip, 0, to_vertical_strip - from_vertical_strip, plate_h, -2, 1, node_plate);
+
+			//Possible waste down the items
+			//	if 
+			if ((*it).RsolType() == 0)
+			{
+				WriteWastesBottom(file, punto_x, punto_y, (*it).X(), (*it).Y(), from_vertical_strip, (*it).y(), to_vertical_strip, (*it).Y(), (*it).plateId(), parent, node, parent_cut);
+				if ((*it).y() > punto_y)
+				{
+					from_horizontal_strip = (*it).y();
+				}
+			}
+			//			change
+			//			parent_cut = 2;
+			node_horizontal_strip = node;
+			//Write horizontal strip
+			if (((*it).X() - (*it).x()) != (to_vertical_strip - from_vertical_strip))
+			{
+				if (G_Rotate == false || ((to_horizontal_strip - from_horizontal_strip) < plate_h))
+				{
+					if ((*it).RsolType() == 0)
+					{
+						parent = node;
+						fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, from_vertical_strip, (*it).y(), to_vertical_strip - from_vertical_strip, to_horizontal_strip - (*it).y(), -2, 2, node_vertical_strip);
+						parent_cut = 2;//change 190918_1317
+						start_strip_vertical = true;
+						if ((*it).Getcut() != 2)
+							(*it).Setcut((*it).Getcut() + 1);
+					}
+					else
+					{
+						parent = node;
+						fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, from_vertical_strip, from_horizontal_strip, to_vertical_strip - from_vertical_strip, to_horizontal_strip - from_horizontal_strip, -2, 2, node_vertical_strip);
+						start_strip_vertical = true;
+						parent_cut = 2;//change 190918_1317
+						if ((*it).Getcut() != 2)
+							(*it).Setcut((*it).Getcut() + 1);
+					}
+					//				parent = node;
+				}
+			}
+			int node_ant = node;
+			//	if ((*it).RsolType() != 0)//change 050119
+			if ((*it).RsolType() >= 0)//change 050119
+			{
+
+				//				WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), from_horizontal_strip, (*it).X(), to_horizontal_strip, (*it).plateId(), parent, node, parent_cut + 1); //V6
+				WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), from_horizontal_strip, (*it).X(), to_horizontal_strip, (*it).plateId(), parent, node, parent_cut); //change 200918 //V5
+				punto_x = (*it).x();
+
+			}
+			//Write vertical strip here
+			//		if ((to_horizontal_strip - from_horizontal_strip) != ((*it).Y() - (*it).y()) && ((*it).X() - from_vertical_strip) != (to_vertical_strip - from_vertical_strip)) //change 050319
+			if ((to_horizontal_strip - from_horizontal_strip) != ((*it).Y() - (*it).y()) && ((*it).X() - (*it).x()) != (to_vertical_strip - from_vertical_strip))
+			{
+				//	if ((*it).RsolType() == 0) //change 050319
+				if ((*it).RsolType() < 0) //change 050319
+				{
+					if (node_ant < node)
+						parent = node - 1;
+					else
+						parent = node;
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, from_vertical_strip, (*it).y(), (*it).X() - from_vertical_strip, to_horizontal_strip - (*it).y(), -2, 3, parent - 1);
+					(*it).Setcut((*it).Getcut() + 1);
+					parent_cut = (*it).Getcut();
+				}
+				else
+				{
+
+					if (node_ant < node)
+						parent = node - 1;
+					else
+						parent = node;
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).x(), from_horizontal_strip, (*it).X() - (*it).x(), to_horizontal_strip - from_horizontal_strip, -2, 3, parent - 1);
+					parent = node - 1;//change 040319
+					(*it).Setcut((*it).Getcut() + 1);
+					parent_cut = (*it).Getcut();
+					if ((*it).y() > from_horizontal_strip)
+					{
+						WriteWastesBottom(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId(), parent, node, parent_cut);
+
+					}
+
+				}
+			}
+			//Possible waste left the items
+			//			WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId(), parent, node, parent_cut);
+			if ((*it).RsolType() == 0)
+			{
+				//				WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId(), parent, node, parent_cut + 1);
+				WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId(), parent, node, parent_cut);//change 190918
+
+																																									 //punto_x = from_vertical_strip;//change 050319
+			}
+			punto_y = (*it).Y();
+			if (((*it).copiesx() == plate_w && NextRight(it, plate_w) > 0) && (*it).Getcut() == 3)
+			{
+				(*it).RsolType(2);
+				PutRSolType(it, to_vertical_strip, to_horizontal_strip);
+			}
+			//change
+			//			if ((*it).RsolType() <= 1 && (!((*it).copiesx() == plate_w && NextRight(it, plate_w)>0)))
+			//			from_horizontal_strip = punto_y;
+
+			//Write the square if there is space under o above
+			if (parent_cut == 1 && (*it).Getcut() == 2)//change 190918_1317
+				(*it).Setcut(1);//change 190918_1317
+
+		}
+		else
+		{
+			vertical_strip = false;
+
+		}
+
+		//If the item is placed cut horizontal
+		if ((*it).Getcut() == 2 && vertical_strip != true && start_strip_vertical != true)
+		{
+			//WE are going to start a strip
+			if (punto_x == from_vertical_strip)
+			{
+				//				if (NothingUp(it, to_vertical_strip) == (-1))
+				//				to_horizontal_strip = (*it).Y();
+				//		else
+				to_horizontal_strip = BottomInTheStripNext(it, to_vertical_strip);
+				int tallest = TallestInTheStrip(it, to_vertical_strip);
+
+				if (tallest < to_horizontal_strip)
+				{
+					//The tallest in the strip beginnning
+					int tallest2 = TallestBeginning(it, to_vertical_strip, tallest);
+					int tallest3 = BottomBeginning(it, to_vertical_strip, tallest);
+
+					//					int right=
+					//if (tallest2 > tallest3 )//change 050319
+					if (tallest2 > tallest3 || (from_horizontal_strip<tallest3 && tallest<to_horizontal_strip))//change 050319
+					{
+						to_horizontal_strip = tallest;
+					}
+					else
+					{
+						if (to_horizontal_strip != plate_h)
+						{
+							int Secondtallest = SecondTallestInTheStrip(it, to_vertical_strip, tallest);
+							if (Secondtallest <= (tallest - waste_min))
+							{
+								to_horizontal_strip = tallest;
+							}
+						}
+					}
+					//	int right = NextRightBottom(it, to_vertical_strip);
+
+				}
+				if (to_horizontal_strip == plate_h)
+				{
+					//					int tallest = TallestInTheStrip(it, to_vertical_strip);
+					//				if (tallest < to_horizontal_strip)
+					//				to_horizontal_strip = tallest;
+				}
+				//tira completa de perdida bottom
+				int right = NextRightBottom(it, to_vertical_strip);
+
+				//				if (right == (*it).y())//change 060319
+				if (right == (*it).y() && (*it).y()>punto_y)//change 060319
+				{
+					//If 
+					if (((*it).Y() < to_horizontal_strip) || ((*it).x() == from_vertical_strip && (*it).X() == to_vertical_strip) || LessTopStrip(it, to_vertical_strip) < to_horizontal_strip)//change 060319
+					{
+						WriteWastesBottom(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), to_vertical_strip, (*it).Y(), (*it).plateId(), node_vertical_strip, node, parent_cut - 1);
+						from_horizontal_strip = (*it).y();
+					}
+				}
+				if (right > (*it).y())
+				{
+					int righttop = NextRightTop(it, to_vertical_strip);
+					if (righttop > (*it).Y())
+					{
+						WriteWastesBottom(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), to_vertical_strip, (*it).Y(), (*it).plateId(), node_vertical_strip, node, parent_cut - 1);
+						from_horizontal_strip = (*it).y();
+					}
+
+				}
+				node_horizontal_strip = node;
+				parent = node_vertical_strip;
+
+				parent_cut = (*it).Getcut();
+				//If it is smaller then I have to put something before
+				/*/				if ((*it).x() != punto_x)
+				{
+				start_strip = true;
+				WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), from_horizontal_strip, (*it).X(), to_horizontal_strip, (*it).plateId(), parent, node, parent_cut);
+				punto_x = (*it).x();
+				}*/
+				//tira completa 
+				bool larga = false;
+				//stripHeH
+				if (((*it).X() - (*it).x()) != (to_vertical_strip - from_vertical_strip))
+				{
+					larga = true;
+					start_strip = true;
+					parent = node;
+					parent_cut = (*it).Getcut();
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, from_vertical_strip, from_horizontal_strip, to_vertical_strip - from_vertical_strip, to_horizontal_strip - from_horizontal_strip, -2, (*it).Getcut(), node_vertical_strip);
+				}
+				//If it is smaller then I have to put something before
+				if ((*it).x() != punto_x)
+				{
+					start_strip = true;
+					WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), from_horizontal_strip, (*it).X(), to_horizontal_strip, (*it).plateId(), parent, node, parent_cut);
+					punto_x = (*it).x();
+				}
+
+
+				//if it is short than the strip
+				if ((to_horizontal_strip - from_horizontal_strip) >((*it).Y() - (*it).y()) && larga == true)
+					//				if (to_horizontal_strip != (*it).Y() && larga == true)
+				{
+					parent = node;
+					parent_cut = (*it).Getcut() + 1;
+					if (larga == true)
+						fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).x(), from_horizontal_strip, (*it).X() - (*it).x(), to_horizontal_strip - from_horizontal_strip, -2, parent_cut, node_horizontal_strip);
+					else
+						fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).x(), from_horizontal_strip, (*it).X() - (*it).x(), to_horizontal_strip - from_horizontal_strip, -2, parent_cut_vertical_strip + 1, node_vertical_strip);
+					//					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).x(), from_horizontal_strip, (*it).X() - (*it).x(), to_horizontal_strip - from_horizontal_strip, -2, 2, node_vertical_strip);
+					if ((*it).y() > from_horizontal_strip)
+					{
+						int node_par = node - 1;
+						fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).x(), from_horizontal_strip, (*it).X() - (*it).x(), (*it).y() - from_horizontal_strip, -2, 4, node_par);
+					}
+					if (larga == true)
+						(*it).Setcut((*it).Getcut() + 1);
+					start_strip = true;
+				}
+				//I have to add something down 
+
+				//change
+				punto_y = (*it).y();
+				//Completa la tira entera
+				if (larga == false)
+					(*it).Setcut((*it).Getcut() - 1);
+
+
+
+			}
+			else
+
+				//change 210518
+				//		WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId() - 1, parent, node,parent_cut);
+			{
+				WriteWastesLeft(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), from_horizontal_strip, (*it).X(), to_horizontal_strip, (*it).plateId(), parent, node, parent_cut);
+				if ((to_horizontal_strip - from_horizontal_strip) >((*it).Y() - (*it).y()))
+					//				if (to_horizontal_strip != (*it).Y() && larga == true)
+				{
+
+					(*it).Setcut((*it).Getcut() + 1);
+				}
+				//			parent = node_horizontal_strip;//change 31082018
+			}
+			//			if (((*it).Y() - (*it).y()) != (to_horizontal_strip - from_horizontal_strip))
+			//		{
+			//		WriteWastesBottom(file, punto_x, punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), to_vertical_strip, (*it).Y(), (*it).plateId() - 1, node_vertical_strip, node, parent_cut - 1);
+
+			//			from_horizontal_strip
+		}
+		//If the item is placed cut horizontal
+		//		if ((*it).Getcut() == 3 && (*it).copiesy() != 2 && start_strip != true && start_strip_vertical != true)
+		if ((*it).Getcut() == 3 && start_strip != true && start_strip_vertical != true)
+		{
+			if (((*it).Y() - (*it).y()) != (to_horizontal_strip - from_horizontal_strip))
+			{
+
+				parent_cut = 2;
+
+				//It could be one to the left
+				WriteWastesLeft(file, punto_x, to_horizontal_strip, (*it).X(), (*it).Y(), (*it).x(), from_horizontal_strip, (*it).X(), to_horizontal_strip, (*it).plateId(), node_horizontal_strip, node, parent_cut);
+				parent = node;
+				parent_cut = (*it).Getcut();
+				fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).x(), from_horizontal_strip, (*it).X() - (*it).x(), to_horizontal_strip - from_horizontal_strip, -2, 3, node_horizontal_strip);
+
+				//It could be one down
+				if ((*it).RsolType() != 1)
+					//					WriteWastesBottom(file, (*it).x(), punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId(), parent, node, parent_cut);
+					WriteWastesBottom(file, (*it).x(), from_horizontal_strip, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId(), parent, node, parent_cut);
+				else
+					WriteWastesBottom(file, (*it).x(), 0, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId(), parent, node, parent_cut);
+
+
+				//				fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId() - 1, node++,(*it).x()  , (*it).y(), (*it).X() - (*it).x(), to_horizontal_strip-(*it).y(), -2, (*it).Getcut()+1, parent);
+				//			parent = node-1;
+				parent_cut = (*it).Getcut();
+			}
+			else
+			{
+				(*it).Setcut((*it).Getcut() - 1);
+				parent = node_horizontal_strip;
+				parent_cut = 2;
+				WriteWastesLeft(file, punto_x, to_horizontal_strip, (*it).X(), (*it).Y(), (*it).x(), from_horizontal_strip, (*it).X(), to_horizontal_strip, (*it).plateId(), node_horizontal_strip, node, parent_cut);
+			}
+
+			//			WriteWastesLeft(file, (*it).x() , punto_y, (*it).X(), (*it).Y(), (*it).x(), (*it).y(), (*it).X(), (*it).Y(), (*it).plateId() - 1, parent, node, parent_cut);
+
+			punto_x = (*it).x();
+		}
+
+		fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).x(), (*it).y(), (*it).X() - (*it).x(), (*it).Y() - (*it).y(), (*it).iditem(), (*it).Getcut() + 1, parent);
+		//		fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).x(), (*it).y(), (*it).X() - (*it).x(), (*it).Y() - (*it).y(), (*it).iditem(), parent_cut+1, parent);
+		//	int up = NothingUp(it, from_vertical_strip, to_vertical_strip);
+		//change
+		//		int up = NothingUp(it, to_vertical_strip);
+
+		//		int up = NothingUp(it, to_vertical_strip,to_horizontal_strip);
+		//nothing arriba
+		if (to_horizontal_strip == plate_h) //if (up == -1)
+		{
+			if ((to_horizontal_strip - (*it).Y()) > 0)
+			{
+
+				// si el anterio 
+				if (parent_cut != 2)
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, punto_x, (*it).Y(), (*it).X() - punto_x, to_horizontal_strip - (*it).Y(), -1, parent_cut + 1, parent);
+				else
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, punto_x, (*it).Y(), (*it).X() - punto_x, to_horizontal_strip - (*it).Y(), -1, parent_cut, parent);
+
+			}
+			//			else
+			//			fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, punto_x, (*it).Y(), (*it).X() - punto_x, plate_h - (*it).Y(), -1, parent_cut + 1, parent);
+
+			//		else
+			//			fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId() - 1, node++, from_vertical_strip, to_horizontal_strip, to_vertical_strip - from_vertical_strip, plate_h - to_horizontal_strip, -1, 2, node_vertical_strip);
+
+			//				WriteWastesBottom(file, from_vertical_strip, to_horizontal_strip, to_vertical_strip-from_vertical_strip, plate_h-to_horizontal_strip, (*it).x(), (*it).y(), to_vertical_strip, (*it).Y(), (*it).plateId() - 1, node_vertical_strip, node, parent_cut - 1);
+
+			//			punto_y = 0;
+		}
+		else
+		{
+			int up = to_horizontal_strip;
+			if ((to_horizontal_strip - (*it).Y()) > 0)
+			{
+				if (parent_cut != 2)
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, punto_x, (*it).Y(), (*it).X() - punto_x, up - (*it).Y(), -1, parent_cut + 1, parent);
+				else
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, punto_x, (*it).Y(), (*it).X() - punto_x, up - (*it).Y(), -1, parent_cut, parent);
+			}
+
+			//			if ((up <= to_horizontal_strip) && (up - (*it).Y())>0)
+			//				fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, punto_x, (*it).Y(), (*it).X() - punto_x, up - (*it).Y(), -1, parent_cut + 1, parent);
+
+
+		}
+
+		int right = NextRight(it, to_vertical_strip, to_horizontal_strip);
+		//Strip to the right
+		if (right == -1)
+		{
+
+			if ((*it).Getcut() != 1)
+			{
+				parent = node_horizontal_strip;
+				parent_cut = 2;
+			}
+			punto_x = from_vertical_strip;
+
+			if (to_vertical_strip > (*it).X())
+			{
+				//change 210518_035
+				//	if (vertical_strip != true && (*it)[6] != 3)
+				if ((*it).copiesy() != 2)
+				{
+					if (vertical_strip != true)
+					{
+						/*						if ((*it).RsolType() != 1)
+						{
+						if (punto_y != from_horizontal_strip)
+						int kk = 9;
+						fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).X(), punto_y, to_vertical_strip - (*it).X(), to_horizontal_strip - punto_y, -1, parent_cut + 1, parent);
+						}
+						else
+						*/							fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).X(), from_horizontal_strip, to_vertical_strip - (*it).X(), to_horizontal_strip - from_horizontal_strip, -1, parent_cut + 1, parent);
+
+					}
+					else
+					{
+						fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).X(), (*it).y(), to_vertical_strip - (*it).X(), to_horizontal_strip - (*it).y(), -1, parent_cut + 1, parent);
+					}
+				}
+				else
+				{
+					//					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).X(), (*it).y(), to_vertical_strip - (*it).X(), to_horizontal_strip - (*it).y(), -1, parent_cut + 1, parent);//change 060319
+					fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).plateId(), node++, (*it).X(), from_horizontal_strip, to_vertical_strip - (*it).X(), to_horizontal_strip - from_horizontal_strip, -1, parent_cut + 1, parent);//change 060319
+
+				}
+			}
+
+		}
+		else
+		{
+			punto_x = (*it).X();
+		}
+		//		if (punto_x == from_vertical_strip && vertical_strip != true && right == -1)
+		if (punto_x == from_vertical_strip && right == -1)
+		{
+			from_horizontal_strip = to_horizontal_strip;
+			punto_y = from_horizontal_strip;
+		}
+
+
+		top_item = (*it).Y();
+		right_item = (*it).Y();
+
+		plateCod = (*it).plateId();
+
+	}
+	if (to_horizontal_strip != (plate_h))
+		fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", plateCod, node++, from_vertical_strip, from_horizontal_strip, to_vertical_strip - from_vertical_strip, plate_h - from_horizontal_strip, -1, 2, node_vertical_strip);
+
+	if (to_vertical_strip != (plate_w))
+		fprintf(file, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", plateCod, node++, to_vertical_strip, 0, plate_w - to_vertical_strip, plate_h, -3, 1, node_plate);
+
+	G_Total_Nodes = node;
+	fclose(file);
+}
+
 
 //From a list of pieces, create the solution
 void Glass::SaveSolution()
@@ -5247,299 +8610,6 @@ void Glass::SaveSolution()
 
 }
 
-void Glass::PushWastes(int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int &pa, int &nod, int &pa_cut)
-{
-	if (py != y)
-	{
-		Glass_Corte  corte_temp(pla, nod++, x, y, pX - x, py - y, -1, pa_cut + 1, pa);
-		G_Solution_Rotated.push_front(corte_temp);
-
-
-	}
-	if (px != x)
-	{
-		//Biggest
-
-		Glass_Corte  corte_temp(pla, nod++, x, py, px - x, pY - py, -1, pa_cut + 1, pa);
-		G_Solution_Rotated.push_front(corte_temp);
-
-	}
-}
-void Glass::PushWastesBottom(int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int pa, int &nod, int pa_cut)
-{
-	if (py > y)
-	{
-		Glass_Corte  corte_temp(pla, nod++, x, y, pX - x, py - y, -1, pa_cut + 1, pa);
-		G_Solution_Rotated.push_front(corte_temp);
-
-
-	}
-
-}
-void Glass::PushWastesLeft(int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int pa, int &nod, int pa_cut)
-{
-
-	if (px != x)
-	{
-		//Biggest
-
-		Glass_Corte  corte_temp(pla, nod++, x, py, px - x, pY - py, -1, pa_cut + 1, pa);
-		G_Solution_Rotated.push_front(corte_temp);
-
-	}
-}
-void Glass::WriteWastes(FILE *files, int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int &pa, int &nod, int &pa_cut)
-{
-	if (py != y)
-	{
-		fprintf(files, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", pla, nod++, x, y, pX - x, py - y, -1, pa_cut + 1, pa);
-
-
-	}
-	if (px != x)
-	{
-		//Biggest
-
-		fprintf(files, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", pla, nod++, x, py, px - x, pY - py, -1, pa_cut + 1, pa);
-
-	}
-}
-void Glass::WriteWastesBottom(FILE *files, int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int pa, int &nod, int pa_cut)
-{
-	if (py > y)
-	{
-		fprintf(files, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", pla, nod++, x, y, pX - x, py - y, -1, pa_cut + 1, pa);
-
-
-	}
-
-}
-void Glass::WriteWastesLeft(FILE *files, int x, int y, int X, int Y, int px, int py, int pX, int pY, int pla, int pa, int &nod, int pa_cut)
-{
-
-	if (px != x)
-	{
-		//Biggest
-
-		fprintf(files, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", pla, nod++, x, py, px - x, pY - py, -1, pa_cut + 1, pa);
-
-	}
-}
-//Look up into the list an item down of this
-bool Glass::NothingDown(std::vector< std::vector <int> > ::iterator  &it)
-{
-	if (it == G_Best_Positions_Items.begin()) return true;
-	bool nada = true;
-	std::vector< std::vector <int> > ::iterator  it2;
-	for (it2 = it - 1; ; it2--)
-	{
-
-		//if starts above it
-		if (((*it2)[5] != (*it)[5]) || ((*it2)[4] > (*it)[2]) || ((*it2)[1] >= (*it)[3]) || ((*it2)[3] <= (*it)[1]))
-		{
-			if (it2 == G_Best_Positions_Items.begin())
-				return nada;
-			continue;
-		}
-
-		return false;
-	}
-	return true;
-}
-void  Glass::ChangeUnder(GlassRectangle & rectangleit, int val)
-{
-
-	//we can have both equal
-	int val2 = 0;
-	bool one = false;
-	std::list< GlassRsol > ::reverse_iterator  it;
-	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() == cont_plates; it++)
-	{
-		if ((*it).x() < Start_strip) return;
-		//Is the first one 
-		if ((*it).copiesy() == 0)
-		{
-			if (one == false)
-			{
-				val2 = (*it).copiesx();
-				(*it).copiesx((*it).copiesx() + val);
-
-				one = true;
-
-			}
-			else
-			{
-				if ((*it).copiesx() != val2)
-					return;
-				(*it).copiesx((*it).copiesx() + val);
-
-			}
-		}
-	}
-	if (one == true)
-		return;
-	PrintProblem("No ha encontrado ninguno debajo");
-	return;
-}
-void  Glass::ChangeWidthRectangles()
-{
-
-
-
-	bool fin = false;
-
-	//set the width
-	for (std::list< GlassRsol > ::reverse_iterator it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() >= cont_plates && (*it).x() >= Start_strip && fin != true; it++)
-	{
-
-
-		if ((*it).plateId() == cont_plates && (*it).X() != Total_width_bin && (*it).X() > (Total_width_bin - waste_min))
-		{
-
-
-			Total_width_bin = Total_width_bin + waste_min;
-			if ((plate_w - Total_width_bin) < waste_min)
-				Total_width_bin = plate_w;
-
-			fin = true;
-		}
-	}
-
-	bool first_base = false;
-
-	for (std::list< GlassRsol > ::iterator it = G_Rsol_Items.begin(); it != G_Rsol_Items.end() && (*it).plateId() >= cont_plates && (*it).x() >= Start_strip && first_base != true; it++)
-	{
-
-		if ((*it).copiesx() >= Total_width_bin)
-		{
-			if ((*it).copiesx() == plate_w || (*it).copiesx() == (Start_strip + max1Cut))
-			{
-				if ((NextRightCurrent(it, plate_w) > 0) && (*it).Getcut() == 2)
-				{
-
-					(*it).RsolType(2);
-
-
-					PutRSolTypeCurrent(it, max(Start_strip + max1Cut, plate_w), plate_w);
-				}
-				else
-				{
-					//					last_base = true;
-					(*it).Setcut(1);
-
-				}
-			}
-
-			//		if ((((*it).copiesx() != plate_w && (*it).copiesx() != (Start_strip + max1Cut)) && ((*it).copiesx() - 20) > Total_width_bin )
-			//		|| ((*it).copiesx()>(Start_strip + max1Cut)) || (MinDimensionPieza == MAXIMUM_INT && ((*it).copiesx() - 20) > Total_width_bin))
-			first_base = true;
-			if ((*it).copiesx()  > Total_width_bin)
-				(*it).copiesx(Total_width_bin);
-			//			else
-			//			Total_width_bin = Total_width_bin + 20;
-		}
-	}
-
-	return;
-}
-void Glass::ChangeRectanglesSimmetry(int maxWidth)
-{
-	bool first_base = false;
-
-	for (std::list< GlassRsol > ::iterator it = G_Rsol_Items.begin(); it != G_Rsol_Items.end() && (*it).plateId() <= 0 && first_base != true; it++)
-	{
-
-		if ((*it).copiesx() >= maxWidth)
-		{
-			if ((*it).copiesx() == plate_w)
-			{
-				if ((NextRightCurrent(it, plate_w) > 0) && (*it).Getcut() == 2)
-				{
-
-					(*it).RsolType(2);
-
-
-					PutRSolTypeCurrent(it, plate_w, plate_w);
-				}
-				else
-				{
-					//					last_base = true;
-					(*it).Setcut(1);
-
-				}
-			}
-			first_base = true;
-			if ((*it).copiesx()  > maxWidth)
-				(*it).copiesx(maxWidth);
-			//			else
-			//			Total_width_bin = Total_width_bin + 20;
-		}
-	}
-}
-void  Glass::ChangeBase(int width)
-{
-
-
-	std::list< GlassRsol > ::reverse_iterator  it;
-	bool change = false;
-	int max = 0;
-	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend(); it++)
-	{
-		if ((*it).plateId() != (cont_plates))
-			continue;
-		//Is the first one 
-		if ((*it).copiesx() > width)
-		{
-			if ((*it).X() > max)
-				max = (*it).X();
-		}
-	}
-	if (!((width - max) == 0 || (width - max) > waste_min))
-		width += waste_min;
-
-	bool first = false;
-	bool second = false;
-	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend(); it++)
-	{
-		if ((*it).plateId() != (cont_plates) || (*it).x()<Start_strip)
-			return;
-		//Is the first one 
-		if ((*it).copiesx() >= width)
-		{
-			(*it).copiesx(width);
-
-
-			(*it).copiesy(0);
-			if (first == true)
-			{
-
-				second = true;
-				(*it).RsolType(2);
-			}
-			if (first == false && NextPut(it, width) == true)
-			{
-
-				first = true;
-				(*it).RsolType(1);
-			}
-
-
-			if ((*it).copiesx() == (*it).X() && (*it).RsolType() == 0)
-				(*it).Setcut(1);
-
-			change = true;
-		}
-		else
-		{
-			if (first == true && second == false)
-				(*it).RsolType(1);
-		}
-	}
-	if (change == true)
-		return;
-	PrintProblem("No ha encontrado ninguno debajo");
-	return;
-}
 bool Glass::NextPut(std::list< GlassRsol > ::reverse_iterator  itk, int WID)
 {
 
@@ -5683,1209 +8753,6 @@ bool Glass::NothingLeft(std::vector< std::vector <int> > ::iterator  &it, int mi
 	}
 	return true;
 }
-bool Glass::AsignarItemsPlate(GlassRectangle &rectangle)
-{
-	LRectangles list_rectangles;
-	list_rectangles.push_back(rectangle);
-	//We need a list of rectangles that we have to fill
-	bool placed = false;
-
-	//While there is rectangle to pack
-	do
-	{
-		rectangle = (*(list_rectangles.begin()));
-		bool posible = false;
-		int inicio = 0;
-
-		do
-		{
-
-			posible = false;
-			if (rectangle.Getmin() < MinDimensionPieza)
-			{
-				if (inicio == 1)
-					continue;
-			}
-			int cambiado = 0;
-		PLACE:
-			if (cambiado == 8 || rectangle.Getmin() < MinDimensionPieza)
-			{
-				if (inicio != 0)
-					continue;
-
-
-			}
-			std::pair<int, int > p(-1, 0);
-			if (deterministic == false)
-				p = ItemGreaterRNRandom(rectangle);
-			else
-				p = ItemGreaterRN(rectangle);
-
-			if (p.first == (-1)) //It means there is no piece in this hole
-			{
-				//Improve this case TODO LIST
-				// If there is a defect you can change the dimensions
-
-				//We are going to put to the top or to the right of the first
-				bool change = false;
-
-				do
-				{
-					change = ChangePositionToPlace(rectangle);
-				} while (rectangle.Getmin() < MinDimensionPieza && (change == true));
-				if (change == true)
-				{
-
-					cambiado++;
-					if (inicio == 0 && cambiado == 8 && (*(list_rectangles.begin())).Getpos_x() == rectangle.Getpos_x() && (*(list_rectangles.begin())).Getpos_y() == rectangle.Getpos_y())
-					{
-						list_rectangles.pop_front();
-						if (list_rectangles.size() == 0)
-							return false;
-						//						list_rectangles.push_front(rectangle);
-					}
-					goto PLACE;
-					//Antiguo 26/04/2018
-					/*					//Change the dimensions of the rectangle
-					rectangle.ChangeDimensionsNextDefect();
-					list_rectangles.pop_front();
-					list_rectangles.push_front(rectangle);
-					p = rectangle.ItemGreaterR();
-					if (p.first != (-1))
-					posible = true;
-					*/
-				}
-				else
-				{
-					//If it comes from bottom
-					if (inicio == 1)
-						//You should close this rectangle.
-						rectangle.Setcut(4);
-					else
-						list_rectangles.pop_front();
-				}
-
-
-			}
-			else
-				posible = true;
-			if (posible == true)
-			{
-
-				//Place this item in the plate
-				//Then can appear other rectangles
-				int rectan_id = rectangle.GetRectangle_id();
-
-				Coordinates xy = PlaceItem(p, rectangle);
-
-				placed = true;
-				UpdateMinDimension(p);
-				GlassRectangle rectangle_new = GlassRectangle(1, xy, rectangle, this);
-
-				if (rectangle.Getmin()>0)
-					rectangle.ModifyDefects();
-				//We have to add the previous rectangle modified
-				EraseRectangleFromList(list_rectangles, rectan_id);
-				if (rectangle.Getsidecut() != 4 && min(rectangle.Get_h(), rectangle.Getmin())>MinDimensionPieza)
-					list_rectangles.push_front(rectangle);
-				rectangle = rectangle_new;
-				inicio = 1;
-			}
-			if (MinDimensionPieza == MAXIMUM_INT)
-				return false;
-
-		} while (posible == true);
-
-
-
-	} while (list_rectangles.size() != 0);
-	return placed;
-}
-void Glass::ChangeRectangles(int Right, int Up, GlassRectangle &Rect, std::list< GlassRectangle> &lista, std::list< GlassDefect > ldefects)
-{
-	Rect.Print();
-	Rect.EverythingOK(Start_strip + max1Cut);
-	if (Right > 0)
-	{
-		//Change Rectangles 
-		for (std::list <GlassRectangle> ::iterator it = lista.begin(); it != lista.end(); it++)
-		{
-			if ((*it).Getpos_X() == Rect.Getpos_X())
-			{
-				(*it).Add_W(Right);
-
-				(*it).Getdefectlist().clear();
-				if (G_Rotate == false)
-					(*it).InsertDefects(ldefects);
-				else
-					(*it).InsertDefectsRotate(ldefects);
-			}
-			if ((*it).Getpos_x() == Rect.Getpos_X())
-			{
-				if ((*it).Get_w() > Right)
-					(*it).Add_W(-Right);
-				else
-					(*it).Set_w(0);
-
-				(*it).Setpos_x((*it).Getpos_x() + Right);
-				(*it).Getdefectlist().clear();
-				if (G_Rotate == false)
-					(*it).InsertDefects(ldefects);
-				else
-					(*it).InsertDefectsRotate(ldefects);
-			}
-		}
-		Rect.EverythingOK(Start_strip + max1Cut);
-		Rect.Add_W(Right);
-		Rect.EverythingOK(Start_strip + max1Cut);
-
-		//11/01/2018 CAMBIADO DESDE
-		//		if (Rect.Getpos_X()>Total_width_bin)
-		//		Total_width_bin = Rect.Getpos_X();
-		//HASTA 
-
-	}
-	if (Up > 0)
-	{
-		//Change Rectangles 
-		for (std::list <GlassRectangle> ::iterator it = lista.begin(); it != lista.end(); it++)
-		{
-			if ((*it).Getpos_Y() == Rect.Getpos_Y())
-			{
-				(*it).Add_H(Up);
-				(*it).Getdefectlist().clear();
-				if (G_Rotate == false)
-					(*it).InsertDefects(ldefects);
-				else
-					(*it).InsertDefectsRotate(ldefects);
-			}
-			if ((*it).Getpos_y() == Rect.Getpos_Y())
-			{
-				if ((*it).Get_h() > Up)
-					(*it).Add_H(-Up);
-				else
-					(*it).Set_h(0);
-				(*it).Setpos_y((*it).Getpos_y() + Up);
-				(*it).Getdefectlist().clear();
-				if (G_Rotate == false)
-					(*it).InsertDefects(ldefects);
-				else
-					(*it).InsertDefectsRotate(ldefects);
-			}
-		}
-		Rect.Add_H(Up);
-		Rect.EverythingOK(Start_strip + max1Cut);
-
-	}
-
-	Rect.Getdefectlist().clear();
-	if (G_Rotate == false)
-		Rect.InsertDefects(ldefects);
-	else
-		Rect.InsertDefectsRotate(ldefects);
-}
-bool Glass::Overlap(std::list< GlassRectangle> &lista, int x, int y, int X, int Y)
-{
-
-	/*	for (std::list <GlassRectangle> ::iterator it = lista.begin(); it != lista.end(); it++)
-	{
-	for (std::list < GlassDefect > ::iterator itD = (*it).Getdefectlist().begin(); itD != (*it).Getdefectlist().end() ; itD++)
-	{
-	if (Overlap(x, y, X, Y, (*itD).Getpos_x(), (*itD).Getpos_y(), (*itD).Getpos_x() + (*itD).Getwidth(), (*itD).Getpos_y() + (*itD).Getheight()))
-	return true;
-	}
-	}*/
-	for (std::list < GlassDefect > ::iterator itD = DefectsPlate[Plates - 1].begin(); itD != DefectsPlate[Plates - 1].end(); itD++)
-	{
-		if (Overlap(x, y, X, Y, (*itD).Getpos_x(), (*itD).Getpos_y(), (*itD).Getpos_x() + (*itD).Getwidth(), (*itD).Getpos_y() + (*itD).Getheight()))
-			return true;
-	}
-	return false;
-
-}
-std::pair< int, int > Glass::ComputeIfBetterToDoChange(GlassRectangle &Rect, Coordinates &pitem)
-{
-	std::pair< int, int > par(0, 0);
-	//If do not place anything lost area = rectangl
-	int Dimw = items[pitem.first.second].Getitem_w(pitem.second.first);
-	int Dimh = items[pitem.first.second].Getitem_h(pitem.second.first);
-	bool right = true;
-	if (Dimw*pitem.second.second > Rect.Get_w())
-		right = true;
-	else
-		right = false;
-	unsigned int SaleDerecha = 0, SaleArriba = 0, LostArea_Changed = 0;
-	if (right == true)
-	{
-		SaleDerecha = Rect.Get_x() + Dimw * pitem.second.second - Rect.Getpos_X();
-		bool few = false;
-		if (SaleDerecha < waste_min)
-		{
-			few = true;
-			SaleDerecha += waste_min;
-
-
-			//Smaller than 20)
-			if (((Rect.Getpos_X() + SaleDerecha)>(plate_w - waste_min))
-				&& ((Rect.Getpos_X() + SaleDerecha)<(plate_w)))
-				SaleDerecha = plate_w - Rect.Getpos_X();
-		}
-		par.first = SaleDerecha;
-		if ((SaleDerecha + Rect.Getpos_X()) > min(plate_w, Start_strip + max1Cut))
-			par.first = -1;
-		LostArea_Changed = plate_h * (SaleDerecha)+
-			Rect.GetArea() - (items[pitem.first.second].Getitem_area()*pitem.second.second);
-
-		if (wider == true || get_random(0, 3) == 0 || deterministic == true)
-			LostArea_Changed = Rect.Get_y()*(SaleDerecha);
-		if (deterministic != true && few == true && (Rect.Get_x() + Dimw * pitem.second.second + waste_min) > min(Start_strip + max1Cut, plate_w))
-			LostArea_Changed = 2 * Rect.GetArea();
-
-	}
-	else
-	{
-		SaleArriba = Rect.Get_y() + Dimh - Rect.Getpos_Y();
-		//TODO find the value
-		bool few = false;
-		if (SaleArriba < waste_min)
-		{
-			few = true;
-			SaleArriba += waste_min;
-			//If all in the same cut starts at the same height
-			if (Rect.Getpos_y() != Rect.Get_y())
-				SaleArriba = plate_h;
-			else
-			{
-				if (AllStartsAtTheSameHeightInTheStrip(Rect) == false)
-					SaleArriba = plate_h;
-				else
-				{
-					if (((Rect.Getpos_Y() + SaleArriba)>(plate_h - waste_min))
-						&& ((Rect.Getpos_Y() + SaleArriba)<(plate_h)))
-						SaleArriba = plate_h - Rect.Getpos_Y();
-				}
-			}
-
-		}
-		par.second = SaleArriba;
-		if ((SaleArriba + Rect.Getpos_Y()) > plate_h)
-			par.first = -1;
-
-		LostArea_Changed = Rect.Getpos_X()*(SaleArriba)+
-			Rect.GetArea() - (items[pitem.first.second].Getitem_area()*pitem.second.second);
-
-		if (higher == true || get_random(0, 3) == 0 || deterministic == true)
-			LostArea_Changed = Rect.Get_x()*(SaleArriba);
-		if (deterministic != true && few == true && (Rect.Get_y() + Dimh + waste_min) >  plate_h)
-			LostArea_Changed = 2 * Rect.GetArea();
-
-	}
-
-	double factor_corrected = 1 + (double)((double)get_random(-8, 8) / (double)10);
-	if (deterministic == true)
-		factor_corrected = 1;
-	if (Rect.GetArea() < (double)factor_corrected*LostArea_Changed)
-		par.first = -1;
-	return par;
-
-}
-//					if (LostArea_Changed < LostArea_Original || (Total_area_used+2* items[p.first.second].Getitem_area()>=Total_area))
-
-void Glass::Randomize(std::vector< int > &lista)
-{
-
-	for (register int i = 0; i < lista.size(); i++)
-	{
-		int change = get_random(0, lista.size() - 1);
-		int temp = lista[i];
-		lista[i] = lista[change];
-		lista[change] = temp;
-	}
-}
-
-int Glass::AsignarItemsPlate_J(GlassRectangle &Rectan)
-{
-
-	LRectangles list_Rectans;
-	std::list< GlassDefect > LDefects = Rectan.Getdefectlist();
-	list_Rectans.push_back(Rectan);
-	Start_strip = Rectan.Get_x();
-	Rectan.EverythingOK(Start_strip + max1Cut);
-	//We need a list of Rectans that we have to fill
-	bool placed = false;
-	bool start_strip = true;
-	MoreThanOne = 0;
-	int Width_start = Total_width_bin;
-	//While there is Rectan to pack
-	do
-	{
-		if (MoreThanOne > 0)
-		{
-			ChangeRectangleFromList(list_Rectans, Total_width_bin);
-			ChangeBase(Total_width_bin);
-			MoreThanOne = 0;
-		}
-		Rectan = (*(list_Rectans.begin()));
-		Rectan.EverythingOK(Start_strip + max1Cut);
-		bool posible = false;
-		int inicio = 0;
-		int cambiado = 0;
-		if ((Rectan.Get_y() == 0 || Rectan.Getpos_y() == 0) && start_strip != true)
-		{
-
-			Total_width_bin = Rectan.Get_x();
-			ChangeWidthRectangles();
-
-			if ((Total_area > Total_area_used) &&
-				(Total_width_bin == Width_start ||
-				(plate_w - Total_width_bin) != MinDimensionPieza && (plate_w - Total_width_bin) < (MinDimensionPieza + waste_min)))
-			{
-				return 0;
-			}
-			else
-				return Rectan.Get_x();
-		}
-		start_strip = false;
-		do
-		{
-
-
-			posible = false;
-			//			if (Rectan.Getmin() < MinDimensionPieza || Rectan.Getmax()< MinDimensionPieza)
-			if (Rectan.Getmax() < MinDimensionPieza || Rectan.Getmin() == 0)
-			{
-				if (inicio == 1)
-					continue;
-			}
-			cambiado = 0;
-		PLACE:
-			if (cambiado == 8 || (Rectan.Getmin() < MinDimensionPieza && Rectan.Getmax() < MinDimensionPieza))
-			{
-				if (inicio != 0)
-					continue;
-
-
-			}
-			std::pair<int, int > p2(-1, -1);
-			Coordinates p(p2, p2);
-			Para_Random = get_random(1, 4);
-			wider = false;
-			higher = false;
-			Rectan.EverythingOK(Start_strip + max1Cut);
-
-			if (get_random(0, 10) >= 8) one_item_each = true;
-			else
-				one_item_each = false;
-			if ((Rectan.Get_x() != Rectan.Getpos_x()) || (Rectan.Get_y() != Rectan.Getpos_y()))
-				one_item_each = true;
-
-			if (deterministic == false && Rectan.Getnumdefects()>0 && get_random(0, 5) <= 2)
-			{
-				//				if (((Rectan.Getdefectminw() - Rectan.Get_x()) ^ 2 + (Rectan.Getdefectminh() - Rectan.Get_y()) ^ 2)<(400 ^ 2 + (get_random(1, 10) * 50) ^ 2))
-				//					Rectan.ChangePositionToPlaceNearest(2);
-				//				int val1 = pow(Rectan.Getdefectminw() - Rectan.Get_x(), 2) + pow(Rectan.Getdefectminh() - Rectan.Get_y(), 2);
-				//			int val2 = pow(400, 2) + pow(get_random(1, 400), 2);
-				if (min(Rectan.Getdefectminw() - Rectan.Get_x(), Rectan.Getdefectminh() - Rectan.Get_y())<get_random(0, 200))
-
-					//				if (val1 <val2)
-				{
-					deterministic = true;
-					Rectan.ChangePositionToPlaceNearest(2);
-					deterministic = false;
-				}
-			}
-			if (G_iter_veces == 18231)
-				int kk = 9;
-			Randomize(G_Random_Stacks);
-
-			//				random_shuffle(G_Random_Stacks.begin(), G_Random_Stacks.end(),randomfunc_1);
-			p = ItemGreaterRNRandom_J(Rectan);
-			//another oner
-
-			/*			}
-			else
-			p = ItemGreaterRN_J(Rectan);*/
-			G_iter_veces++;
-
-			Rectan.EverythingOK(Start_strip + max1Cut);
-
-
-			if (p.first.first == (-1)) //It means there is no piece in this hole
-			{
-
-				//It means there is a piece overlapping the Rectan
-				if (p.first.second != (-1))
-				{
-
-					Rectan.EverythingOK(Start_strip + max1Cut);
-
-					//Change the first parameter is to the right, the second one to the top
-
-					std::pair< int, int > change = ComputeIfBetterToDoChange(Rectan, p);
-
-					//					if (LostArea_Changed < LostArea_Original || (Total_area_used+2* items[p.first.second].Getitem_area()>=Total_area))
-
-
-					if (change.first >= 0)
-					{
-
-						//change Rectans 
-						bool overlap_other = false;
-						//If the change is to the top
-						//It could be an infeasible solution
-						if (change.second > 0)
-						{
-							bool feasible = CheckChangesToTheTop(change.second, Rectan.Getpos_y());
-							if (feasible == true)
-							{
-								MakeFeasibleToTheTop(change.second, Rectan.Getpos_y());
-							}
-							else
-								overlap_other = true;
-						}
-
-
-
-						if (overlap_other == false)
-						{
-							Rectan.EverythingOK(Start_strip + max1Cut);
-							ChangeRectangles(change.first, change.second, Rectan, list_Rectans, DefectsPlate[NumberOfPlate]);
-							Rectan.EverythingOK(Start_strip + max1Cut);
-							p.first.first = p.first.second;
-							p.first.second = p.second.first;
-							p.second.first = p.second.second;
-							p.second.second = 1;
-
-							//We have to change the solution of the item above
-							if (change.first > 0)
-								ChangeUnder(Rectan, change.first);
-
-							posible = true;
-							Rectan.EverythingOK(Start_strip + max1Cut);
-							goto PLACE2;
-						}
-
-					}
-					Rectan.EverythingOK(Start_strip + max1Cut);
-				}
-				//Improve this case TODO LIST
-				// If there is a defect you can change the dimensions
-				//We are going to put to the top or to the right of the first
-				bool change = false;
-				do
-				{
-					Rectan.EverythingOK(Start_strip + max1Cut);
-					GlassRectangle kkrec = Rectan;
-					change = Rectan.ChangePositionToPlaceNearest(2);
-					Rectan.EverythingOK(Start_strip + max1Cut);
-				} while (Rectan.Getmin() < MinDimensionPieza && (change == true));
-				Rectan.EverythingOK(Start_strip + max1Cut);
-				if (change == true)
-				{
-
-					cambiado++;
-					if (inicio == 0 && cambiado == 8 && (*(list_Rectans.begin())).Getpos_x() == Rectan.Getpos_x() && (*(list_Rectans.begin())).Getpos_y() == Rectan.Getpos_y())
-					{
-						list_Rectans.pop_front();
-						if (list_Rectans.size() == 0)
-						{
-							ChangeWidthRectangles();
-							return 0;
-						}
-
-
-					}
-					goto PLACE;
-				}
-
-				else
-				{
-					//If it comes from bottom
-					if (inicio == 1)
-						//You should close this Rectan.
-						Rectan.Setcut(4);
-					else
-						list_Rectans.pop_front();
-				}
-
-
-			}
-			else
-				posible = true;
-			if (posible == true)
-			{
-			PLACE2:
-
-				//Place this item in the plate
-				//Then can appear other Rectans
-
-				Rectan.EverythingOK(Start_strip + max1Cut);
-				int rectan_id = Rectan.GetRectangle_id();
-
-				int MoreOne = MoreThanOne;
-
-				Coordinates xy = PlaceItem(p, Rectan);
-
-				Rectan.EverythingOK(Start_strip + max1Cut);
-				int MoreOne2 = MoreThanOne;
-				if ((MoreOne - MoreOne2) > 0)
-				{
-
-					ChangeRectangleFromList(list_Rectans, Total_width_bin);
-					ChangeBase(Total_width_bin);
-				}
-
-				placed = true;
-				UpdateMinDimension(p.first);
-				GlassRectangle Rectan_new = GlassRectangle(1, xy, Rectan, this);
-				if (active_log_error && G_Rotate == false)
-				{
-
-					if (G_Rsol_Items.back().X() > (plate_w - waste_min) && G_Rsol_Items.back().X() != (plate_w))
-					{
-
-						printf("Iter %d", G_iter_veces);
-						PrintProblem("Alguna pieza fuera X menos 20");
-					}
-				}
-				if (active_log_error)
-				{
-					if (G_Rsol_Items.back().Y() > (plate_h - waste_min) && G_Rsol_Items.back().Y() != (plate_h))
-					{
-
-						printf("Iter %d", G_iter_veces);
-						PrintProblem("Alguna pieza fuera X menos 20");
-					}
-				}				if (Rectan.Getmin()>0)
-					Rectan.ModifyDefects();
-				//We have to add the previous Rectan modified
-				EraseRectangleFromList(list_Rectans, rectan_id);
-				//Change 05062018
-
-				Rectan.EverythingOK(Start_strip + max1Cut);
-
-				if (Rectan.Getsidecut() != 4 && min(Rectan.Get_h(), Rectan.Getmin()) >= MinDimensionPieza)
-					list_Rectans.push_front(Rectan);
-				Rectan = Rectan_new;
-				Rectan.EverythingOK(Start_strip + max1Cut);
-
-
-				//				if (Rectan.Get)
-				inicio = 1;
-			}
-			if (MinDimensionPieza == MAXIMUM_INT)
-			{
-				ChangeWidthRectangles();
-				//			GlassRsol Rsol = GlassRsol(cont_plates - 1, node_id++, Total_width_bin, 0, plate_w-Total_width_bin, plate_h, -3,1, node_ini_plate);
-				//		G_Rsol_Items.push_back(Rsol);
-				return Total_width_bin;
-			}
-
-
-		} while (posible == true);
-
-
-
-	} while (list_Rectans.size() != 0);
-	if (Width_start == Total_width_bin)
-	{
-		ChangeWidthRectangles();
-		return 0;
-	}
-	else
-	{
-		ChangeWidthRectangles();
-		if ((Total_area > Total_area_used) &&
-			(Total_width_bin == Width_start ||
-			(plate_w - Total_width_bin) != MinDimensionPieza && (plate_w - Total_width_bin) < (MinDimensionPieza + waste_min)))
-		{
-			return 0;
-		}
-		else
-			return Total_width_bin;
-	}
-}
-bool   Glass::CheckChangesToTheTop(int top, int bottom)
-{
-
-	//we can have both equal
-
-	std::list< GlassRsol > ::reverse_iterator  it;
-	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() == cont_plates; it++)
-	{
-		//not in the strip
-		if ((*it).x() < Start_strip) return true;
-		if ((*it).Y() <= bottom) return true;
-		//Well positionated
-		if ((*it).y() <= bottom) continue;
-
-		if (Overlap((*it).x(), (*it).y() + top, (*it).X(), (*it).Y() + top) == true)
-			return false;
-
-	}
-	return true;
-}
-
-bool   Glass::MakeFeasibleToTheTop(int top, int bottom)
-{
-
-	//we can have both equal
-
-	std::list< GlassRsol > ::reverse_iterator  it;
-	for (it = G_Rsol_Items.rbegin(); it != G_Rsol_Items.rend() && (*it).plateId() == cont_plates; it++)
-	{
-		if ((*it).x() < Start_strip) return true;
-		if ((*it).Y() <= bottom) return true;
-		if ((*it).y() <= bottom) continue;
-		//Change this
-		(*it).y((*it).y() + top);
-		(*it).Y((*it).Y() + top);
-	}
-	return true;
-}
-//Change the position where can be a rectangle
-bool Glass::ChangePositionToPlace(GlassRectangle &R)
-{
-	//We are going to try to place to the top
-	if (R.Getsidecut() != 2)
-	{
-		if ((R.Getdefectminw() - R.Getpos_x()) <= (R.Getdefectminh() - R.Getpos_y()))
-		{
-			//Nothing to the bottom
-			bool change_st = R.FindTheFollowingDefect(R.Getdefectminw(), 1);
-			if (change_st == false && R.Getsidecut() == 1)
-				change_st = R.FindTheFollowingDefect(R.Getdefectminh(), 2);
-			return change_st;
-		}
-		else
-		{
-			//nothing to the left
-			bool change_st = R.FindTheFollowingDefect(R.Getdefectminh(), 2);
-			if (change_st == false)
-				change_st = R.FindTheFollowingDefect(R.Getdefectminw(), 1);
-			return change_st;
-		}
-
-	}
-	else
-	{
-		if ((R.Getdefectminw() - R.Getpos_x()) <= (R.Getdefectminh() - R.Getpos_y()))
-		{
-			//Nothing to the bottom
-			bool change_st = R.FindTheFollowingDefect(R.Getdefectminw(), 1);
-			if (change_st == false && R.Getsidecut() == 1)
-				change_st = R.FindTheFollowingDefect(R.Getdefectminh(), 2);
-			return change_st;
-		}
-		else
-		{
-			//nothing to the left
-			bool change_st = R.FindTheFollowingDefect(R.Getdefectminh(), 2);
-			if (change_st == false)
-				change_st = R.FindTheFollowingDefect(R.Getdefectminw(), 1);
-			return change_st;
-		}
-	}
-}
-
-void Glass::UpdateMinDimension(std::pair<int, int> p)
-{
-	//If that item is not the minimum
-	if (items[p.first].Getitem_min() != MinDimensionPieza)
-		return;
-	MinDimensionPieza = MAXIMUM_INT;
-	MaxMinDimensionPieza = 0;
-
-	for (int i = 0; i < batch_items; i++)
-	{
-		if (G_Vector_Items[i] != true)
-		{
-			if (items[i].Getitem_min() < MinDimensionPieza)
-				MinDimensionPieza = items[i].Getitem_min();
-			if (items[i].Getitem_min() > MaxMinDimensionPieza)
-				MaxMinDimensionPieza = items[i].Getitem_min();
-		}
-	}
-
-}
-
-void Glass::PrintProblem(string problem)
-{
-	double perro = 0;
-	printf("%s", problem.c_str());
-	scanf("%f", &perro);
-
-}
-void Glass::EraseRectangleFromList(LRectangles &lista, GlassRectangle &R)
-{
-	LRectangles::iterator it;
-	for (it = lista.begin(); it != lista.end(); it++)
-	{
-		if ((*it).GetRectangle_id() == R.GetRectangle_id())
-			//		if (Overlap((*it).Getpos_x(), (*it).Getpos_y(), (*it).Getpos_X(), (*it).Getpos_Y(), R.Getpos_x(), R.Getpos_y(), R.Getpos_X(), R.Getpos_Y()))
-		{
-			it = lista.erase(it);
-			return;
-		}
-	}
-
-
-	//No tiene por qué borrar otros
-	//	PrintProblem("No puedo borrar ese elemento");
-}
-void Glass::ChangeRectangleFromList(LRectangles &lista, int width)
-{
-	LRectangles::iterator it;
-	for (it = lista.begin(); it != lista.end(); it++)
-	{
-		if ((*it).Getpos_X()>width)
-		{
-			//		(*it).Set_w((*it).Get_w() - ((*it).Getpos_X() - width));
-			(*it).Add_W(-((*it).Getpos_X() - width));
-
-		}
-	}
-
-
-	//No tiene por qué borrar otros
-	//	PrintProblem("No puedo borrar ese elemento");
-}
-void Glass::EraseRectangleFromList(LRectangles &lista, int id_rect)
-{
-	LRectangles::iterator it;
-	for (it = lista.begin(); it != lista.end(); it++)
-	{
-		if ((*it).GetRectangle_id() == id_rect)
-			//		if (Overlap((*it).Getpos_x(), (*it).Getpos_y(), (*it).Getpos_X(), (*it).Getpos_Y(), R.Getpos_x(), R.Getpos_y(), R.Getpos_X(), R.Getpos_Y()))
-		{
-			it = lista.erase(it);
-			return;
-		}
-	}
-
-
-	//No tiene por qué borrar otros
-	//	PrintProblem("No puedo borrar ese elemento");
-}
-void Glass::TransformarSolucionSimetrica(string filep, bool quitar)
-{
-	FILE *fin3;
-	G_Rotate_Solution.clear();
-	G_Solution_Rotated.clear();
-	G_first_time_node = false;
-
-	fin3 = fopen(filep.c_str(), "r+");
-	if (fin3 == NULL)
-	{
-		printf("Problemas al leer el archivo %s, no se encuentra el archivo", filep.c_str());
-		exit(4);
-	}
-	char kk[256];
-	fscanf(fin3, "%s\n", kk);
-	int bin, node, x1, y1, x2, y2, type, cut, parent;
-
-	do
-	{
-		fscanf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;", &bin, &node, &x1, &y1, &x2, &y2, &type, &cut);
-		if (cut != 0)
-		{
-			fscanf(fin3, "%d\n", &parent);
-		}
-		else
-		{
-			parent = -1;
-			fscanf(fin3, "\n");
-		}
-
-
-		Glass_Corte corte_temp;
-		corte_temp.bin = bin; 		corte_temp.node = node;
-		corte_temp.x1 = x1; 		corte_temp.y1 = y1;
-		corte_temp.width = x2; 		corte_temp.height = y2;
-		corte_temp.type = type; 		corte_temp.cut = cut;
-		corte_temp.parent = parent;
-		G_Solution_Rotated.push_front(corte_temp);
-
-
-	} while (node != (G_Total_Nodes - 1));
-	fclose(fin3);
-	int waste_strip = 0;
-	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
-	{
-		if (quitar == true)
-		{
-			//Do not add the cut's of the first bin with waste
-			if (!((*it).bin == 0 && (*it).cut == 1 && ((*it).type == (-1) || (*it).type == (-3)) && (*it).x1 != 0))
-				G_Rotate_Solution.push_back((*it));
-			else
-				waste_strip = (*it).width;
-		}
-		else
-			G_Rotate_Solution.push_back((*it));
-
-
-	}
-	//	int MaxWidth=MaxWidthLastPiece(G_Rsol_Items);
-	G_Solution_Rotated.clear();
-
-
-	int Bin_actual = 0;
-	//Ya tenemos leída la solución y además en orden inverso
-	int pos_ini_strip = -1;
-	int pos_fin_strip = 0;
-	int pos_ini_bin = 0;
-	int pos_fin_bin = 0;
-	G_rotated_nodes = 0;
-	int Node_Bin = 0;
-
-
-	Glass_Corte corte_temp;
-	corte_temp.bin = 0;
-	corte_temp.node = 0;
-	corte_temp.x1 = 0;
-	corte_temp.y1 = 0;
-	corte_temp.width = plate_w;
-	corte_temp.height = plate_h;
-	corte_temp.type = -2;
-	corte_temp.cut = 0;
-	corte_temp.parent = -1;
-	G_Solution_Rotated.push_back(corte_temp);
-	G_rotated_nodes++;
-
-
-	for (int i = 0; i<G_Rotate_Solution.size() - 1; i++)
-	{
-
-		//Is the bin packing
-		if (G_Rotate_Solution[i].cut == 0)
-		{
-
-			pos_ini_bin = max(pos_fin_bin, pos_ini_bin);
-			pos_fin_bin = i;
-			//If we have change of bin
-			pos_ini_strip = i;
-
-			//			pos_ini_bin = i;
-
-			Bin_actual++;
-			Node_Bin = G_rotated_nodes;
-			G_Solution_Rotated.push_back(G_Rotate_Solution[i]);
-			G_rotated_nodes++;
-		}
-		else
-		{
-
-			if (G_Rotate_Solution[i].height == plate_h)
-			{
-				if (G_Rotate_Solution[i].type == -1)
-				{
-
-					//					ChangeDimensionsSimetry(G_Rotate_Solution[i]);
-					G_Solution_Rotated.push_back(G_Rotate_Solution[i]);
-					G_rotated_nodes++;
-					pos_ini_strip++;
-
-
-				}
-				else
-				{
-
-					pos_ini_strip = max(pos_fin_strip, pos_ini_strip);
-					pos_fin_strip = i;
-
-					G_Solution_Rotated.push_back(G_Rotate_Solution[i]);
-
-					G_rotated_nodes++;
-					CorteHorizontalSimetry(pos_ini_strip, pos_fin_strip);
-				}
-				//				ChangeDimensionsSimetry(G_Rotate_Solution[i]);
-				//				G_Solution_Rotated.push_back(G_Rotate_Solution[i]);
-
-			}
-
-
-		}
-
-
-
-
-	}
-
-	//Verificar nodos
-	//linux quitar
-	/*
-	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
-	{
-	int buscar = (*it).node;
-	bool encontrado = false;
-	for (int i = 0; i < (G_Rotate_Solution.size() - 1) && encontrado==false; i++)
-	{
-	if (G_Rotate_Solution[i].node == buscar)
-	{
-	encontrado = true;
-	break;
-	}
-	}
-
-	}
-	for (int i = 0; i < (G_Rotate_Solution.size() - 1) ; i++)
-	{
-	int buscar = G_Rotate_Solution[i].node;
-	bool encontrado = false;
-
-	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end() && encontrado == false; it++)
-	{
-	if ((*it).node == buscar)
-	{
-	encontrado = true;
-	break;
-	}
-
-	}
-
-	}
-	*/
-	//If change the bin, and nodes
-	Bin_actual = 0;
-	int node_Bin = 0;
-	int node_strip = 0;
-	int node_width = 0;
-	int node_trim = 0;
-	G_rotated_nodes = 0;
-	G_Solution_Rotated.front().bin = NumberOfPlates + 1;
-	G_Solution_Rotated.back().type = -3;
-	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
-	{
-		//Quitar trozo
-
-		if ((*it).bin == NumberOfPlates && (*it).type == -3)
-			(*it).type = -1;
-
-		(*it).bin = NumberOfPlates - (*it).bin;
-		(*it).node = G_rotated_nodes;
-
-		if ((*it).cut == 0)
-		{
-
-			(*it).bin++;
-			node_Bin = G_rotated_nodes;
-		}
-		else
-		{
-			//Vertical Strip
-			if ((*it).cut == 1)
-			{
-				(*it).parent = node_Bin;
-				node_strip = G_rotated_nodes;
-			}
-			else
-			{
-				if ((*it).cut == 2)
-				{
-					(*it).parent = node_strip;
-					node_width = G_rotated_nodes;
-				}
-				else
-				{
-					if ((*it).cut == 3)
-					{
-						(*it).parent = node_width;
-						node_trim = G_rotated_nodes;
-
-					}
-					else
-					{
-						(*it).parent = node_trim;
-					}
-				}
-
-			}
-		}
-		ChangeDimensionsSimetry(*it);
-
-		if ((*it).bin == NumberOfPlates && (*it).cut != 0)
-		{
-			(*it).x1 -= waste_strip;
-			if ((*it).type == (-3))
-				(*it).width += waste_strip;
-		}
-		G_rotated_nodes++;
-	}
-	if (quitar == false)
-	{
-		int cont = 0;
-		for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++, cont++)
-		{
-			if ((*it).type == (-3) && cont != (G_Solution_Rotated.size() - 1))
-				(*it).type = -1;
-		}
-	}
-	//Write the rotated solution
-
-	fin3 = fopen(filep.c_str(), "w+");
-	if (fin3 == NULL)
-	{
-		printf("Problemas al leer el archivo %s, no se encuentra el archivo de solution", name_instance.c_str());
-		exit(4);
-	}
-
-
-	//	PLATE_ID	NODE_ID	X	Y	WIDTH	HEIGHT	TYPE	CUT	PARENT
-	fprintf(fin3, "PLATE_ID;NODE_ID;X;Y;WIDTH;HEIGHT;TYPE;CUT;PARENT\n");
-	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
-	{
-		if ((*it).cut != 0)
-			fprintf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).bin,
-			(*it).node, (*it).x1, (*it).y1, (*it).width,
-				(*it).height, (*it).type, (*it).cut, (*it).parent);
-		else
-			fprintf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;\n", (*it).bin,
-			(*it).node, (*it).x1, (*it).y1, (*it).width,
-				(*it).height, (*it).type, (*it).cut);
-
-	}
-
-	fclose(fin3);
-
-}
-void Glass::EscribirSolutionRotated(string filep, std::list< Glass_Corte> &lista)
-{
-	//Write the rotated solution
-	FILE *fin3;
-	fin3 = fopen(filep.c_str(), "w+");
-	if (fin3 == NULL)
-	{
-		printf("Problemas al leer el archivo %s, no se encuentra el archivo de solution", name_instance.c_str());
-		exit(4);
-	}
-
-
-	//	PLATE_ID	NODE_ID	X	Y	WIDTH	HEIGHT	TYPE	CUT	PARENT
-	fprintf(fin3, "PLATE_ID;NODE_ID;X;Y;WIDTH;HEIGHT;TYPE;CUT;PARENT\n");
-	for (std::list< Glass_Corte>::iterator it = lista.begin(); it != lista.end(); it++)
-	{
-		if ((*it).cut != 0)
-			fprintf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;%d\n", (*it).bin,
-			(*it).node, (*it).x1, (*it).y1, (*it).width,
-				(*it).height, (*it).type, (*it).cut, (*it).parent);
-		else
-			fprintf(fin3, "%d;%d;%d;%d;%d;%d;%d;%d;\n", (*it).bin,
-			(*it).node, (*it).x1, (*it).y1, (*it).width,
-				(*it).height, (*it).type, (*it).cut);
-
-	}
-
-	fclose(fin3);
-}
-void Glass::CorteHorizontalSimetry(int ini, int fin)
-{
-
-	int pos_ini_horizontal = ini;
-	int pos_fin_horizontal = 0;
-	//It is a strip with only a piece
-	if (ini == (fin - 1)) return;
-	for (int i2 = ini; i2<fin; i2++)
-	{
-		if (G_Rotate_Solution[i2].cut == 2)
-		{
-			G_Solution_Rotated.push_back(G_Rotate_Solution[i2]);
-			G_rotated_nodes++;
-			//Other strip inside
-			if (G_Rotate_Solution[i2].type == -2)
-			{
-				pos_ini_horizontal = max(pos_fin_horizontal, pos_ini_horizontal);
-				pos_fin_horizontal = i2;
-				CorteVerticalSimetry(pos_ini_horizontal, pos_fin_horizontal);
-			}
-			else
-			{
-
-				pos_ini_horizontal++;
-				ini++;
-
-			}
-
-		}
-	}
-}
-void Glass::CorteVerticalSimetry(int ini, int fin)
-{
-	//It is a strip with only a piece
-	if (ini == fin) return;
-	int pos_ini_vertical = ini;
-	int pos_fin_vertical = 0;
-	//It is a strip with only a piece
-	if (ini == (fin - 1)) return;
-	for (int i3 = ini; i3<fin; i3++)
-	{
-		if (G_Rotate_Solution[i3].cut == 3)
-		{
-			G_Solution_Rotated.push_back(G_Rotate_Solution[i3]);
-
-			G_rotated_nodes++;
-			//Other strip inside
-			if (G_Rotate_Solution[i3].type == -2)
-			{
-				pos_ini_vertical = max(pos_fin_vertical, pos_ini_vertical);
-				pos_fin_vertical = i3;
-				/*				if (pos_ini_vertical == 0 && ini==0)
-				{
-				pos_ini_vertical = -1;
-				//					G_first_time_node = true;
-				}*/
-				if (pos_ini_vertical == 0 &&
-					G_Rotate_Solution[0].parent == G_Solution_Rotated.back().node)
-					pos_ini_vertical = -1;
-				for (int i4 = pos_ini_vertical + 1; i4 < pos_fin_vertical; i4++)
-				{
-					if (EstaYaPuesto(G_Rotate_Solution[i4].node) == false)
-					{
-						G_Solution_Rotated.push_back(G_Rotate_Solution[i4]);
-
-						G_rotated_nodes++;
-					}
-				}
-
-				if (pos_ini_vertical < 0)
-					pos_ini_vertical = 0;
-			}
-			else
-			{
-				if (pos_ini_vertical != 0)
-				{
-					pos_ini_vertical = max(i3, pos_ini_vertical);
-				}
-				//			pos_ini_vertical++;
-
-			}
-
-		}
-	}
-}
-bool Glass::EstaYaPuesto(int buscar)
-{
-
-	for (std::list< Glass_Corte>::iterator it = G_Solution_Rotated.begin(); it != G_Solution_Rotated.end(); it++)
-	{
-		if ((*it).node == buscar)
-			return true;
-
-	}
-	return false;
-}
-void Glass::ChangeDimensionsSimetry(Glass_Corte &d)
-{
-	int newx1 = plate_w - d.x1 - d.width;
-	int newy1 = plate_h - d.y1 - d.height;
-	d.x1 = newx1;
-	d.y1 = newy1;
-}
-//This function give back the new rectangle that we have to pack
-/*GlassRectangle * AsignarRectangulo(GlassRectangle &rectangulo)
-{
-
-};*/
-
 void Glass::WriteSolution(string filep)
 {
 
@@ -7003,68 +8870,392 @@ void Glass::WritePlates()
 
 	fclose(fin3);
 }
-
-void Glass::JointItems()
+//Look up into the list an item down of this
+bool Glass::NothingDown(std::list< GlassRsol >::iterator  &it)
 {
-	//	printf("Llego aquí  batch %d\n\n\n", batch_items);
-	if (G_Rotate == false)
+	if (it == G_Rsol_Items.begin()) return true;
+	bool nada = true;
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2--;
+	for (; ; it2--)
 	{
-		for (register int i = 0; i < batch_items - 2; i++)
-		{
-			int equals = 0;
-			bool end = false;
-			for (register int j = i + 1; j < batch_items - 1 && end != true; j++)
-			{
 
-				if ((items[i].Getitem_stack() == items[j].Getitem_stack()) &&
-					(items[i].Getitem_h() == items[j].Getitem_h()) &&
-					(items[i].Getitem_w() == items[j].Getitem_w()))
-				{
-					equals++;
-					continue;
-				}
-				end = true;
-			}
-			if (equals == 0)
-				continue;
-			//		printf("Llego aquí %d \t%d\n\n\n",i,batch_items);
-			for (; equals >= 0; equals--, i++)
-			{
-				items[i].Setitem_num(equals + 1);
-			}
+		//if starts above it
+		if (((*it2).plateId() != (*it).plateId()) || ((*it2).Y() > (*it).y()) || ((*it2).x() >= (*it).X()) || ((*it2).X() <= (*it).x()))
+		{
+			if (it2 == G_Rsol_Items.begin())
+				return nada;
+			continue;
+		}
+
+		return false;
+	}
+	return true;
+}
+int  Glass::NextRight(std::list< GlassRsol > ::iterator  &it, int toright)
+{
+	if (it == G_Best_Rsol_Items.end()) return -1;
+	int maximo = -1;
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return maximo;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return maximo;
+		if ((*it2).y() >= (*it).Y()) //not in the horizontal strip
+			return maximo;
+		if ((*it2).x() >= (*it).X()) //out of the strip
+			return (*it2).x();
+
+	}
+	return maximo;
+}
+int  Glass::NextRight(std::list< GlassRsol > ::iterator  &it, int toright, int toup)
+{
+	if (it == G_Best_Rsol_Items.end()) return -1;
+	int maximo = -1;
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return maximo;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return maximo;
+		if ((*it2).y() >= toup) //not in the horizontal strip
+			return maximo;
+		if ((*it2).x() >= (*it).X()) //out of the strip
+			return (*it2).x();
+
+	}
+	return maximo;
+}
+int  Glass::NextRightCurrent(std::list< GlassRsol > ::iterator  &it, int toright)
+{
+	if (it == G_Rsol_Items.end()) return -1;
+	int maximo = -1;
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return maximo;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return maximo;
+		if ((*it2).y() >= (*it).Y()) //not in the horizontal strip
+			return maximo;
+		if ((*it2).x() >= (*it).X()) //out of the strip
+			return (*it2).x();
+
+	}
+	return maximo;
+}
+int Glass::TallestBeginning(std::list< GlassRsol > ::iterator  &it, int toright, int tall)
+{
+	if (it == G_Best_Rsol_Items.end()) return -1;
+	int max = (*it).y();
+
+
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return max;
+		if ((*it2).y() >= tall)
+			return max;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return max;
+		if ((*it2).y() > max)
+		{
+			max = (*it2).y();
 
 		}
-	}
-	else
-	{
-		for (register int i = batch_items - 1; i >= 1; i--)
-		{
-			int equals = 0;
-			bool end = false;
-			for (register int j = i - 1; j >= 0 && end != true; j--)
-			{
 
-				if ((items[i].Getitem_stack() == items[j].Getitem_stack()) &&
-					(items[i].Getitem_h() == items[j].Getitem_h()) &&
-					(items[i].Getitem_w() == items[j].Getitem_w()))
-				{
-					equals++;
-					continue;
-				}
-				end = true;
-			}
-			if (equals == 0)
-				continue;
-			//		printf("Llego aquí %d \t%d\n\n\n",i,batch_items);
-			for (; equals >= 0; equals--, i--)
-			{
-				items[i].Setitem_num(equals + 1);
-			}
 
-		}
 	}
+	return max;
 
 }
+int Glass::BottomBeginning(std::list< GlassRsol > ::iterator  &it, int toright, int tall)
+{
+	if (it == G_Best_Rsol_Items.end()) return -1;
+	int min = (*it).y();
+
+
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return min;
+		if ((*it2).y() >= tall)
+			return min;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return min;
+		if ((*it2).y() < min)
+		{
+			min = (*it2).y();
+
+		}
+
+
+	}
+	return min;
+
+}
+//Less top strip
+int Glass::LessTopStrip(std::list< GlassRsol > ::iterator  &it, int toright)
+{
+	if (it == G_Best_Rsol_Items.end()) return -1;
+	int minimo = (*it).Y();//change 040119
+						   //	int minimo = (*it).Y();//change 040119
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return minimo;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return minimo;
+		if ((*it2).Y() < minimo)
+			minimo = (*it2).Y();
+
+
+	}
+	return minimo;
+}
+int  Glass::NextRightBottom(std::list< GlassRsol > ::iterator  &it, int toright)
+{
+	if (it == G_Best_Rsol_Items.end()) return -1;
+	int minimo = (*it).y();//change 040119
+//	int minimo = (*it).Y();//change 040119
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return minimo;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return minimo;
+		if ((*it2).y() < minimo)
+			minimo = (*it2).y();
+
+
+	}
+	return minimo;
+}
+bool   Glass::NotOther(std::list< GlassRsol > ::iterator  &it, int fin, int inicio, int toright)
+{
+	if (it == G_Best_Rsol_Items.end()) return true;
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return true;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return true;
+		if ((*it2).y() < fin && (*it2).Y()>inicio) //not in the horizontal strip
+			return false;
+
+	}
+	return true;
+
+}
+int  Glass::TallestInTheStrip(std::list< GlassRsol > ::iterator  &it, int toright)
+{
+	if (it == G_Best_Rsol_Items.end()) return (*it).Y();
+	int maximo = (*it).Y();
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return maximo;
+		if ((*it2).X() > toright || (*it2).x() < (*it).X()) //not in the horizontal strip
+			return maximo;
+		if ((*it2).y() >= (*it).Y() && NotOther(it, (*it).Y(), (*it2).y(), toright) == false) //not in the horizontal strip
+			return (*it2).Y();
+		if ((*it2).y() > (*it).y() && (*it2).y() <(*it).Y())
+			return (*it2).Y();
+		if ((*it2).Y() >= maximo)
+			maximo = (*it2).Y();
+
+	}
+	return maximo;
+}
+int  Glass::SecondTallestInTheStrip(std::list< GlassRsol > ::iterator  &it, int toright, int tall)
+{
+	if (it == G_Best_Rsol_Items.end()) return (*it).Y();
+	int maximo = -1;
+	if ((*it).Y() != tall)
+		maximo = (*it).Y();
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return maximo;
+		if ((*it2).X() > toright || (*it2).x() < (*it).X()) //not in the horizontal strip
+			return maximo;
+		if ((*it2).y() >= (*it).Y() && NotOther(it, (*it).Y(), (*it2).y(), toright) == false) //not in the horizontal strip
+			return (*it2).Y();
+		if ((*it2).y() > (*it).y() && (*it2).y() <(*it).Y())
+			return (*it2).Y();
+		if ((*it2).Y() >= maximo && (*it2).Y()!=tall )
+			maximo = (*it2).Y();
+
+	}
+	return maximo;
+}
+
+int  Glass::BottomInTheStripNext(std::list< GlassRsol > ::iterator  &it, int toright)
+{
+	if (it == G_Best_Rsol_Items.end()) return plate_h;
+	int minimo = plate_h;
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return minimo;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return minimo;
+		if ((*it2).y() >= (*it).Y() && NotOther(it, (*it).Y(), (*it2).y(), toright) == true)
+		{
+			if ((*it2).y() < minimo)
+				minimo = (*it2).y();
+		}
+		//	if ((*it2).Getcut()<=2 && (*it2).y() >= (*it).Y() && NotOther(it, (*it).Y(), (*it2).y(), toright) == true) //not in the horizontal strip
+		//	return (*it2).y();
+
+	}
+	return minimo;
+}
+int  Glass::NothingUp(std::list< GlassRsol > ::iterator  &it, int toright)
+{
+	if (it == G_Best_Rsol_Items.end()) return -1;
+	int maximo = -1;
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return maximo;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return maximo;
+		if ((*it2).y() >= (*it).Y())
+			return (*it2).y();
+
+	}
+	return maximo;
+}
+int  Glass::NothingUp(std::list< GlassRsol > ::iterator  &it, int toright, int totop)
+{
+	if (it == G_Best_Rsol_Items.end()) return -1;
+	int maximo = -1;
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return maximo;
+		if ((*it2).y() >= totop)
+			return maximo;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return maximo;
+		if ((*it2).y() >= (*it).Y())
+			return (*it2).y();
+
+	}
+	return maximo;
+}
+//NothingLeft(it, from_vertical_strip) == true)
+//Look up into the list an item down of this
+bool Glass::NothingLeft(std::list< GlassRsol > ::iterator  &it, int min)
+{
+	if (it == G_Best_Rsol_Items.begin()) return true;
+	bool nada = true;
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2--;
+	for (; ; it2--)
+	{
+
+		//if starts above it
+		if (((*it).plateId() != (*it).plateId()) || ((*it2).x() < min) || ((*it2).X() > (*it).x()) || ((*it2).y() >= (*it).Y()) || ((*it2).Y() <= (*it).y()))
+		{
+			if (it2 == G_Best_Rsol_Items.begin())
+				return nada;
+			continue;
+		}
+
+		return false;
+	}
+	return true;
+}
+bool Glass::NoItemBetweenTallMin(std::list< GlassRsol > ::iterator  &it, int toright, int tall)
+{
+	if (it == G_Best_Rsol_Items.end()) return true;
+
+
+
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it2).plateId() != (*it).plateId()) //different plate
+			return true;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return true;
+		if ((*it2).y() > tall && (*it2).y() < tall + waste_min)
+			return false;
+	}
+	return true;
+}
+int  Glass::NextRightTop(std::list< GlassRsol > ::iterator  &it, int toright)
+{
+	if (it == G_Best_Rsol_Items.end()) return -1;
+	int maximo = (*it).y();
+	std::list< GlassRsol > ::iterator  it2;
+	it2 = it;
+	it2++;
+	for (; it2 != G_Best_Rsol_Items.end(); it2++)
+	{
+		if ((*it).plateId() != (*it2).plateId()) //different plate
+			return maximo;
+		if ((*it2).x() < (*it).X())
+			return maximo;
+		if ((*it2).X() > toright) //not in the horizontal strip
+			return maximo;
+		if ((*it2).Y() > maximo)
+			maximo = (*it2).Y();
+
+
+	}
+	return maximo;
+}
+
+
+//We are not using this functions
 
 std::pair<int, int > Glass::ItemGreaterRNAreaV(GlassRectangle &R)
 {
@@ -7476,1203 +9667,4 @@ std::pair<int, int > Glass::ItemGreaterRNH(GlassRectangle &R)
 	pk.first = max_item;
 	pk.second = horizontal;
 	return pk;
-}
-
-
-/***************************/
-
-Coordinates Glass::ItemGreaterRNH_J(GlassRectangle &R)
-{
-	bool horizontal = true;
-	int maximum = 0;
-	int maximum2 = 0;
-	int max_item = -1;
-	int max_copies = 1;
-	std::pair<int, int>  pk3(-1, -1);
-	std::pair<int, int>  pk2(1, 1);
-	Coordinates pk(pk3, pk2);
-	int Y = R.Get_y();
-	int multiplier = 1;
-	bool before_greater = false;
-	To_the_Top = false;
-	//IT has to be on the top
-	if ((R.Getsidecut() >= 3 && R.Get_y() != R.Getpos_y())
-		|| ((R.Get_y() - R.Getpos_y()) >= waste_min && R.Get_y() >= 1210 + get_random(1, 10) * 150))
-	{
-		//We have to place to the top then we have to ask about this.
-		Y = R.Getpos_Y();
-		multiplier = 0;
-
-
-	}
-
-	//	if (deterministic == false && get_random(0, 2) == 0 && R.Get_y() != 0 && max_item == (-1))
-	if (deterministic == false && get_random(0, 2) == 0 && R.Get_y() != 0 && R.Getpos_X() != plate_w && max_item == (-1))
-	{
-
-		before_greater = true;
-		Coordinates p2 = ComputeLowestRectangle_H(R);
-		if (p2.first.second != -1)
-		{
-			wider = true;
-			return p2;
-		}
-
-	}
-	int to_copies = 1;
-	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
-	{
-		int i = (*it);
-		//If there are items in this stacks
-		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
-		{
-			if (one_item_each == true)
-				to_copies = 1;
-			else
-				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
-			for (register int copies = 1; copies <= to_copies; copies++)
-			{
-				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
-				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
-				//Randomness
-
-
-				if (deterministic == false && max_item != (-1) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
-				{
-					if (get_random(0, G_Vector_Size_Stacks[i] - G_Vector_Stacks[i]) <= (Para_Random)) //Cambiado
-						continue;
-				}
-				//If can not fii in that hole
-				if (min_dim_item*copies > R.Get_w() ||
-					min_dim_item > R.Get_h())
-					continue;
-				else
-				{
-
-					//both measures are possible
-					if (max_dim_item*copies <= R.Get_w() &&
-						max_dim_item <= R.Get_h() &&
-						max_dim_item*copies <= max1Cut)
-					{
-						if ((max_dim_item*copies > maximum)
-							|| (max_dim_item*copies == maximum && min_dim_item > maximum2))
-						{
-
-							if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
-								&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
-							{
-								max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-								max_copies = copies;
-								maximum = max_dim_item * copies;
-								maximum2 = min_dim_item;
-								horizontal = true;
-							}
-							else
-							{
-								if ((min_dim_item*copies <= max1Cut) &&
-									(min_dim_item*copies > maximum)
-									|| (min_dim_item*copies == maximum && max_dim_item > maximum2))
-								{
-									if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
-										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
-
-									{
-										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-										max_copies = copies;
-										maximum = min_dim_item * copies;
-										maximum2 = max_dim_item;
-										horizontal = false;
-									}
-								}
-							}
-
-						}
-
-					}
-					else
-					{
-						if (max_dim_item*copies <= R.Get_w()
-							&& max_dim_item*copies <= max1Cut)
-						{
-							if ((max_dim_item*copies > maximum)
-								|| (max_dim_item*copies == maximum && min_dim_item > maximum2))
-							{
-								if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
-									&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
-								{
-									max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-									max_copies = copies;
-									maximum = max_dim_item * copies;
-									maximum2 = min_dim_item;
-									horizontal = true;
-								}
-							}
-						}
-						else
-						{
-							if (max_dim_item*copies <= R.Get_h())
-							{
-								if ((min_dim_item*copies <= max1Cut) &&
-									(min_dim_item*copies > maximum)
-									|| (min_dim_item*copies == maximum && max_dim_item > maximum2))
-								{
-									if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
-										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
-									{
-										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-										max_copies = copies;
-										maximum = min_dim_item * copies;
-										maximum2 = max_dim_item;
-										horizontal = false;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-	}
-	if (max_item == (-1) && R.Getpos_X() != plate_w && before_greater != true)
-	{
-		if (R.Getpos_X() != plate_w)
-			return ComputeLowestRectangle_H(R);
-		else
-		{
-			if (R.Getpos_Y() != plate_h)
-				return ComputeLowestRectangle_V(R);
-		}
-
-	}
-	To_the_Top = false;
-	if (multiplier == 0) To_the_Top = true;
-	pk.first.first = max_item;
-	if (max_item != (-1))
-		pk.first.second = horizontal;
-	pk.second.first = max_copies;
-	pk.second.second = 1;
-	return pk;
-}
-//The lowest rectangel than exceeds the widt
-Coordinates Glass::ComputeLowestRectangle_H(GlassRectangle &R)
-{
-
-	int Min = MAXIMUM_INT;
-	std::pair<int, int>  pk3(-1, 0);
-	std::pair<int, int>  pk2(1, 1);
-	Coordinates pk(pk3, pk2);
-	pk.first.first = -1;
-	pk.first.second = -1;
-	int to_copies = 1;
-	int Y = R.Get_y();
-	int multiplier = 1;
-	//Compute lowest in this rectangle
-	//	for (register int i = 0; i < stack_nbr; i++)
-	//	{
-
-	if (R.Getsidecut() >= 3 && R.Get_y() != R.Getpos_y())
-	{
-		//We have to place to the top then we have to ask about this.
-		Y = R.Getpos_Y();
-		multiplier = 0;
-
-	}
-	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
-	{
-		int i = (*it);
-
-		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
-		{
-			if (one_item_each == true)
-				to_copies = 1;
-			else
-				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
-			for (register int copies = 1; copies <= to_copies; copies++)
-			{
-				if (deterministic == false && (Min != MAXIMUM_INT) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
-					continue;
-				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
-				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
-
-
-				if (min_dim_item > R.Get_h())
-					continue;
-				if (max_dim_item*copies <= R.Get_w())
-					continue;
-
-				if (min_dim_item*copies> R.Get_w() && max_dim_item <= R.Get_h() && (R.Get_x() + min_dim_item * copies) <= min(plate_w, Start_strip + max1Cut))
-				{
-					if (!(((max_dim_item) <= (R.Get_h() - waste_min)) || ((max_dim_item) == R.Get_h())))
-						continue;
-
-
-
-
-					//		if (min_dim_item*copies < Min && Overlap(R.Get_x(),R.Get_y(),R.Get_x()+ (min_dim_item*copies),R.Get_y()+max_dim_item)==false)
-					if (min_dim_item*copies < Min && Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item) == false)
-					{
-
-						Min = min_dim_item * copies;
-						pk.first.first = -1;
-						pk.first.second = G_Matrix_Items[i][G_Vector_Stacks[i]];
-						pk.second.first = false;
-						pk.second.second = copies;
-					}
-				}
-				else
-				{
-					if (max_dim_item*copies> R.Get_w() && min_dim_item <= R.Get_h() && (R.Get_x() + max_dim_item * copies) <= min(plate_w, Start_strip + max1Cut))
-					{
-						if (!(((min_dim_item) <= (R.Get_h() - waste_min)) || ((min_dim_item) == R.Get_h())))
-							continue;
-
-						if (max_dim_item*copies < Min && Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item) == false)
-						{
-							Min = max_dim_item * copies;
-							pk.first.first = -1;
-							pk.first.second = G_Matrix_Items[i][G_Vector_Stacks[i]];
-							pk.second.first = true;
-							pk.second.second = copies;
-						}
-					}
-
-				}
-
-			}
-		}
-	}
-
-	if (Min == MAXIMUM_INT || ((Min + R.Get_x()) > (plate_w - waste_min) && (Min + R.Get_x()) <plate_w) || (Min + R.Get_x() > (min(plate_w, Start_strip + max1Cut))))
-		//	||
-		//		((Min -R.Get_w())<20 && (Min - R.Get_w())>0))
-	{
-		pk.first.second = -1;
-	}
-	To_the_Top = false;
-	if (multiplier == 0) To_the_Top = true;
-	return pk;
-}
-//The lowest rectangel than exceeds the height
-Coordinates Glass::ComputeLowestRectangle_V(GlassRectangle &R)
-{
-	int Min = MAXIMUM_INT;
-	std::pair<int, int>  pk3(-1, 0);
-	std::pair<int, int>  pk2(1, 1);
-	Coordinates pk(pk3, pk2);
-	pk.first.first = -1;
-	pk.first.second = -1;
-	int to_copies = 1;
-	//Compute lowest in this rectangle
-	//	for (register int i = 0; i < stack_nbr; i++)
-	//	{
-
-	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
-	{
-		int i = (*it);
-
-		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
-		{
-			if (one_item_each == true)
-				to_copies = 1;
-			else
-				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
-			for (register int copies = 1; copies <= to_copies; copies++)
-			{
-				if (deterministic == false && (Min != MAXIMUM_INT) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
-					continue;
-				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
-				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
-
-				if (min_dim_item > R.Get_w())
-					continue;
-				if (max_dim_item*copies <= R.Get_h())
-					continue;
-
-				if (min_dim_item> R.Get_h() && max_dim_item*copies <= R.Get_w() && (R.Get_y() + min_dim_item) <= plate_h)
-				{
-					if (!((max_dim_item*copies <= (R.Get_w() - waste_min)) || (max_dim_item*copies == R.Get_w())))
-						continue;
-					if (min_dim_item < Min && Overlap(R.Get_x(), R.Get_y(), R.Get_x() + (max_dim_item*copies), R.Get_y() + min_dim_item) == false)
-					{
-						Min = min_dim_item;
-						pk.first.first = -1;
-						pk.first.second = G_Matrix_Items[i][G_Vector_Stacks[i]];
-						pk.second.first = true;
-						pk.second.second = copies;
-					}
-				}
-				else
-				{
-					if (max_dim_item> R.Get_h() && min_dim_item*copies <= R.Get_w() && (R.Get_y() + max_dim_item) <= plate_h)
-					{
-						if (!((min_dim_item*copies <= (R.Get_w() - waste_min)) || (min_dim_item*copies == R.Get_w())))
-							continue;
-						if (max_dim_item < Min && Overlap(R.Get_x(), R.Get_y(), R.Get_x() + (min_dim_item*copies), R.Get_y() + max_dim_item) == false)
-						{
-							Min = max_dim_item;
-							pk.first.first = -1;
-							pk.first.second = G_Matrix_Items[i][G_Vector_Stacks[i]];
-							pk.second.first = false;
-							pk.second.second = copies;
-						}
-					}
-
-				}
-
-			}
-		}
-	}
-	if (Min == MAXIMUM_INT || ((Min + R.Get_y()) > (plate_h - waste_min) && (Min + R.Get_y()) <plate_h))
-		//		||
-		//		((Min - R.Get_h())<20 && (Min - R.Get_h())>0)) 
-	{
-		pk.first.second = -1;
-	}
-
-	return pk;
-}
-
-Coordinates Glass::ItemGreaterRNV_J(GlassRectangle &R)
-{
-
-	bool horizontal = false;
-	int maximum2 = 0;
-	int maximum = 0;
-	int max_item = -1;
-	int max_copies = 1;
-	std::pair<int, int>  pk3(-1, -1);
-	std::pair<int, int>  pk2(1, 1);
-	Coordinates pk(pk3, pk2);
-	int Y = R.Get_y();
-	int multiplier = 1;
-	bool before_greater = false;
-	if ((R.Getsidecut() >= 3 && R.Get_y() != R.Getpos_y())
-		|| ((R.Get_y() - R.Getpos_y()) >= waste_min && R.Get_y() >= 1000 + get_random(1, 20) * 100))
-	{
-		//We have to place to the top then we have to ask about this.
-		Y = R.Getpos_Y();
-		multiplier = 0;
-
-	}
-	//	if (deterministic == false && get_random(0, 2) == 0 && R.Get_y() != 0 && R.Getpos_Y() != plate_h && max_item == (-1))
-	if (deterministic == false && get_random(0, 2) == 0 && R.Getpos_Y() != plate_h && max_item == (-1))
-	{
-		before_greater = true;
-		Coordinates p2 = ComputeLowestRectangle_V(R);
-		if (p2.first.second != -1)
-		{
-			higher = true;
-			return p2;
-		}
-
-	}
-	int to_copies = 1;
-	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
-	{
-		int i = (*it);
-		//If there are items in this stacks
-		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
-		{
-			if (one_item_each == true)
-				to_copies = 1;
-			else
-				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
-
-			for (register int copies = 1; copies <= to_copies; copies++)
-			{
-
-				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
-				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
-
-				if (deterministic == false && max_item != (-1) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
-				{
-					if (get_random(0, G_Vector_Size_Stacks[i] - G_Vector_Stacks[i]) <= Para_Random)
-
-						continue;
-				}
-				//If can not fii in that hole
-				if (min_dim_item*copies > R.Get_w() ||
-					min_dim_item > R.Get_h())
-					continue;
-				else
-				{
-
-					//both measures are possible
-					if (max_dim_item*copies <= R.Get_w() &&
-						max_dim_item <= R.Get_h() &&
-						max_dim_item*copies <= max1Cut)
-					{
-						if ((max_dim_item > maximum)
-							|| (max_dim_item == maximum && min_dim_item*copies > maximum2))
-						{
-							if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
-								&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
-							{
-								max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-								max_copies = copies;
-								maximum = max_dim_item;
-								maximum2 = min_dim_item * copies;
-								horizontal = false;
-							}
-							else
-							{
-								if ((min_dim_item > maximum)
-									|| (min_dim_item == maximum && max_dim_item*copies > maximum2))
-								{
-									if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
-										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
-									{
-										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-										max_copies = copies;
-										maximum = min_dim_item;
-										maximum2 = max_dim_item * copies;
-										horizontal = true;
-									}
-								}
-							}
-						}
-
-					}
-					else
-					{
-						//one measure is possible
-						if (max_dim_item*copies <= R.Get_w() &&
-							max_dim_item*copies <= max1Cut)
-						{
-							if ((min_dim_item > maximum)
-								|| (min_dim_item == maximum && max_dim_item*copies > maximum2))
-							{
-								if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
-									&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
-								{
-									max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-									max_copies = copies;
-									maximum = min_dim_item;
-									maximum2 = max_dim_item * copies;
-									horizontal = true;
-								}
-							}
-						}
-						else
-						{
-							if (max_dim_item <= R.Get_h() &&
-								min_dim_item*copies <= max1Cut)
-							{
-
-								if ((max_dim_item > maximum)
-									|| (max_dim_item == maximum && min_dim_item*copies > maximum2))
-								{
-									if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
-										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
-									{
-										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-										max_copies = copies;
-										maximum = max_dim_item;
-										maximum2 = min_dim_item * copies;
-										horizontal = false;
-									}
-								}
-							}
-						}
-					}
-				}
-
-			}
-		}
-
-	}
-	//	if (max_item == (-1) && R.Getnumdefects() == 0 && before_greater != true)
-	if (max_item == (-1) && before_greater != true)
-	{
-		if (R.Getpos_Y() != plate_h)
-			return ComputeLowestRectangle_V(R);
-		else
-		{
-			if (R.Getpos_X() != plate_w)
-				return ComputeLowestRectangle_H(R);
-
-		}
-
-	}
-	To_the_Top = false;
-	if (multiplier == 0) To_the_Top = true;
-	pk.first.first = max_item;
-	if (max_item != -1)
-		pk.first.second = horizontal;
-	pk.second.first = max_copies;
-	pk.second.second = 1;
-	return pk;
-}
-Coordinates Glass::ItemGreaterRNAreaV_J(GlassRectangle &R)
-{
-	bool horizontal = false;
-	int maximum2 = 0;
-	int maximum = 0;
-	int max_item = -1;
-	int max_copies = 1;
-	std::pair<int, int>  pk3(-1, -1);
-	std::pair<int, int>  pk2(1, 1);
-	Coordinates pk(pk3, pk2);
-	int Y = R.Get_y();
-	int multiplier = 1;
-	if (R.Getsidecut() >= 3 && R.Get_y() != R.Getpos_y())
-	{
-		//We have to place to the top then we have to ask about this.
-		Y = R.Getpos_Y();
-		multiplier = 0;
-
-	}
-	int to_copies = 1;
-	for (std::vector<int> ::iterator it = G_Random_Stacks.begin(); it != G_Random_Stacks.end(); it++)
-	{
-		int i = (*it);
-
-
-		//If there are items in this stacks
-		if (G_Vector_Stacks[i] < (G_Vector_Size_Stacks[i]))
-		{
-			if (one_item_each == true)
-				to_copies = 1;
-			else
-				to_copies = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_num();
-			for (register int copies = 1; copies <= to_copies; copies++)
-			{
-				int max_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_max();
-				int min_dim_item = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_min();
-				if (deterministic == false && max_item != (-1) && get_random(0, G_Vector_Stacks.size()) <= (G_Vector_Stacks.size() / (Para_Random)))
-				{
-					if (get_random(0, G_Vector_Size_Stacks[i] - G_Vector_Stacks[i]) <= Para_Random)
-						continue;
-				}
-				//If can not fii in that hole
-				if (min_dim_item*copies > R.Get_w() ||
-					min_dim_item > R.Get_h())
-					continue;
-				else
-				{
-
-					//both measures are possible
-					if (max_dim_item*copies <= R.Get_w() &&
-						max_dim_item <= R.Get_h() &&
-						max_dim_item*copies<max1Cut)
-					{
-						if ((items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies > maximum)
-							|| (items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies == maximum && min_dim_item > maximum2))
-						{
-							if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
-								&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
-							{
-								max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-								max_copies = copies;
-								maximum = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies;
-								maximum2 = min_dim_item;
-								horizontal = false;
-							}
-							else
-							{
-								if ((items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies > maximum)
-									|| (items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies == maximum && max_dim_item > maximum2))
-								{
-									if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
-										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
-									{
-										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-										max_copies = copies;
-										maximum = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area();
-										maximum2 = max_dim_item * copies;
-										horizontal = true;
-									}
-								}
-							}
-						}
-
-					}
-					else
-					{
-						//one measure is possible
-						if (max_dim_item*copies <= R.Get_w() &&
-							max_dim_item*copies <= max1Cut)
-						{
-							if ((items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies > maximum)
-								|| (items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies == maximum && min_dim_item > maximum2))
-							{
-								if (Overlap(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == false
-									&& Wastemin(R.Get_x(), Y - (1 - multiplier)*min_dim_item, R.Get_x() + max_dim_item * copies, Y + (multiplier)*min_dim_item, R) == true)
-								{
-									max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-									max_copies = copies;
-									maximum = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies;
-									maximum2 = min_dim_item;
-									horizontal = true;
-								}
-							}
-						}
-						else
-						{
-							if (max_dim_item <= R.Get_h() &&
-								min_dim_item*copies <= max1Cut)
-							{
-
-								if ((items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies > maximum)
-									|| (items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies == maximum && max_dim_item > maximum2))
-								{
-									if (Overlap(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == false
-										&& Wastemin(R.Get_x(), Y - (1 - multiplier)*max_dim_item, R.Get_x() + min_dim_item * copies, Y + (multiplier)*max_dim_item, R) == true)
-									{
-										max_item = G_Matrix_Items[i][G_Vector_Stacks[i]];
-										max_copies = copies;
-										maximum = items[G_Matrix_Items[i][G_Vector_Stacks[i]]].Getitem_area()*copies;
-										maximum2 = max_dim_item;
-										horizontal = false;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-	}
-	if (max_item == (-1)) //Poner ComputeLowestRectangle lo de la perdida
-						  //	if (max_item == (-1) && R.Getnumdefects() == 0 )
-	{
-		if (R.Getpos_Y() != plate_h)
-			return ComputeLowestRectangle_V(R);
-		else
-		{
-			if (R.Getpos_X() != plate_w)
-				return ComputeLowestRectangle_H(R);
-		}
-	}
-	To_the_Top = false;
-	if (multiplier == 0) To_the_Top = true;
-	pk.first.first = max_item;
-	if (max_item != -1)
-		pk.first.second = horizontal;
-	pk.second.first = max_copies;
-	pk.second.second = 1;
-	return pk;
-}
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-Coordinates PlaceItem(std::pair<int, int> p, GlassRectangle &Rect)
-{
-int up = Rect.Getpos_y() - Rect.Get_y();
-int height = Rect.Get_h();
-std::pair <int, int > xy(0, 0);
-std::pair <int, int > wh(0, 0);
-Coordinates p1(xy, wh);
-p1.second.first = Rect.Getpos_X();
-p1.second.second = Rect.Getpos_Y();
-//
-Rect.Print();
-
-std::vector <int > vec(6);
-vec[0] = p.first;
-vec[1] = Rect.Get_x();
-vec[2] = Rect.Get_y();
-vec[5] = cont_plates;
-
-//For doing the plates
-std::vector <int > temp(6);
-temp[1] = Rect.Getpos_x();
-temp[2] = Rect.Getpos_y();
-temp[3] = Rect.Getpos_X();
-temp[4] = Rect.Getpos_Y();
-vec[5] = cont_plates;
-//We have to place the item in the position
-//left bottom corner
-
-//Place the item
-switch (Rect.Getsidecut())
-{
-// case 1:
-case 1:
-//vertical
-//
-if (p.second == items[p.first].Getitem_h())
-{
-vec[3] = Rect.Get_x() + items[p.first].Getitem_w();
-vec[4] = Rect.Get_y() + items[p.first].Getitem_h();
-}
-else
-{
-vec[3] = Rect.Get_x() + items[p.first].Getitem_h();
-vec[4] = Rect.Get_y() + items[p.first].Getitem_w();
-}
-
-break;
-
-
-
-case 2: //bottom left corner
-//horizontal
-if (p.second == items[p.first].Getitem_h())
-{
-vec[3] = Rect.Get_x() + items[p.first].Getitem_h();
-vec[4] = Rect.Get_y() + items[p.first].Getitem_w();
-}
-else
-{
-vec[3] = Rect.Get_x() + items[p.first].Getitem_w();
-vec[4] = Rect.Get_y() + items[p.first].Getitem_h();
-}
-//
-
-
-break;
-
-
-default:
-//vertical
-if (p.second == items[p.first].Getitem_h())
-{
-vec[3] = Rect.Get_x() + items[p.first].Getitem_w();
-vec[4] = Rect.Get_y() + items[p.first].Getitem_h();
-}
-else
-{
-vec[3] = Rect.Get_x() + items[p.first].Getitem_h();
-vec[4] = Rect.Get_y() + items[p.first].Getitem_w();
-}
-
-
-break;
-
-}
-//Create rectangles
-// 1: p1 top ; Rect right
-// 2: p1 right ; Rect top
-// 3: p1 top Rect right
-switch (Rect.Getsidecut())
-{
-// case 1:
-case 1:
-//vertical
-
-p1.first.first = Rect.Getpos_x();
-p1.first.second = vec[4];
-p1.second.first = vec[3];
-//Change the dimensions of the previous one
-Rect.Set_w(Rect.Get_w() - (p1.second.first - Rect.Getpos_x()));
-
-Rect.Setpos_x(p1.second.first);
-//		Rect.ModifyDefects();
-//		Rect.Addcut();
-break;
-
-
-
-case 2: //bottom left corner
-//horizontal
-
-
-p1.first.first = vec[3];
-p1.first.second = Rect.Getpos_y();
-p1.second.second = vec[4];
-//Change the dimensions of the previous one
-Rect.Set_h(Rect.Get_h() - (p1.second.second - Rect.Getpos_y()));
-Rect.Setpos_y(p1.second.second);
-//		Rect.ModifyDefects();
-//		Rect.Addcut();
-break;
-
-
-default:
-//vertical
-
-
-p1.first.first = vec[3];
-p1.first.second = Rect.Getpos_y();
-
-//Change the dimensions of the previous one
-//Change the dimensions of the previous one
-Rect.Set_w(Rect.Get_w() - (p1.second.first - Rect.Getpos_x()));
-
-Rect.Setpos_x(p1.second.first);
-//		Rect.ModifyDefects();
-//		Rect.Addcut();
-break;
-
-}
-//Add one to the list of items
-G_Vector_Stacks[items[p.first].Getitem_stack()]++;
-printf("Pongo pieza %d %d %d %d %d\n", vec[0], vec[1], vec[2], vec[3], vec[4]);
-
-int tipo = 1;
-//Vertical cut
-if (G_Positions_Items.size()==0 || G_Positions_Items[G_Positions_Items.size()-1][3]!=vec[3])
-{
-temp[3] = vec[3];
-GlassPlate Plato2 = GlassPlate(G_Plate_Sol.back().Getnode_id(), temp, G_Plate_Sol.back().Getplate_id(), &node_nbr, -2, 1, plate_h);
-G_Plate_Sol.push_back(Plato2);
-}
-//vertical cut and horizontal cut
-if (temp[2]!=vec[2])
-{
-temp[3] = vec[3];
-temp[4] = vec[2];
-GlassPlate Plato2 = GlassPlate(G_Plate_Sol.back().Getnode_id(), temp, G_Plate_Sol.back().Getplate_id(), &node_nbr, -1, Rect.Getsidecut(), plate_h);
-G_Plate_Sol.push_back(Plato2);
-}
-
-GlassPlate Plato = GlassPlate(G_Plate_Sol.back().Getnode_id(), vec, G_Plate_Sol.back().Getplate_id(), &node_nbr,p.first,Rect.Getsidecut(),0);
-G_Plate_Sol.push_back(Plato);
-
-G_Positions_Items.push_back(vec);
-G_Vector_Items[p.first] = true;
-items[p.first].Print();
-Rect.Print();
-
-return pk1;
-
-}*/
-
-//Look up into the list an item down of this
-bool Glass::NothingDown(std::list< GlassRsol >::iterator  &it)
-{
-	if (it == G_Rsol_Items.begin()) return true;
-	bool nada = true;
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2--;
-	for (; ; it2--)
-	{
-
-		//if starts above it
-		if (((*it).plateId() != (*it).plateId()) || ((*it2).Y() > (*it).y()) || ((*it2).x() >= (*it).X()) || ((*it2).X() <= (*it).x()))
-		{
-			if (it2 == G_Rsol_Items.begin())
-				return nada;
-			continue;
-		}
-
-		return false;
-	}
-	return true;
-}
-int  Glass::NextRight(std::list< GlassRsol > ::iterator  &it, int toright)
-{
-	if (it == G_Best_Rsol_Items.end()) return -1;
-	int maximo = -1;
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it).plateId() != (*it).plateId()) //different plate
-			return maximo;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return maximo;
-		if ((*it2).y() >= (*it).Y()) //not in the horizontal strip
-			return maximo;
-		if ((*it2).x() >= (*it).X()) //out of the strip
-			return (*it2).x();
-
-	}
-	return maximo;
-}
-int  Glass::NextRight(std::list< GlassRsol > ::iterator  &it, int toright, int toup)
-{
-	if (it == G_Best_Rsol_Items.end()) return -1;
-	int maximo = -1;
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it2).plateId() != (*it).plateId()) //different plate
-			return maximo;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return maximo;
-		if ((*it2).y() >= toup) //not in the horizontal strip
-			return maximo;
-		if ((*it2).x() >= (*it).X()) //out of the strip
-			return (*it2).x();
-
-	}
-	return maximo;
-}
-int  Glass::NextRightCurrent(std::list< GlassRsol > ::iterator  &it, int toright)
-{
-	if (it == G_Rsol_Items.end()) return -1;
-	int maximo = -1;
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Rsol_Items.end(); it2++)
-	{
-		if ((*it).plateId() != (*it).plateId()) //different plate
-			return maximo;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return maximo;
-		if ((*it2).y() >= (*it).Y()) //not in the horizontal strip
-			return maximo;
-		if ((*it2).x() >= (*it).X()) //out of the strip
-			return (*it2).x();
-
-	}
-	return maximo;
-}
-int Glass::TallestBeginning(std::list< GlassRsol > ::iterator  &it, int toright, int tall)
-{
-	if (it == G_Best_Rsol_Items.end()) return -1;
-	int max = (*it).y();
-
-
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it2).plateId() != (*it).plateId()) //different plate
-			return max;
-		if ((*it2).y() >= tall)
-			return max;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return max;
-		if ((*it2).y() > max)
-		{
-			max = (*it2).y();
-
-		}
-
-
-	}
-	return max;
-
-}
-int Glass::BottomBeginning(std::list< GlassRsol > ::iterator  &it, int toright, int tall)
-{
-	if (it == G_Best_Rsol_Items.end()) return -1;
-	int min = (*it).y();
-
-
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it2).plateId() != (*it).plateId()) //different plate
-			return min;
-		if ((*it2).y() >= tall)
-			return min;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return min;
-		if ((*it2).y() < min)
-		{
-			min = (*it2).y();
-
-		}
-
-
-	}
-	return min;
-
-}
-int  Glass::NextRightBottom(std::list< GlassRsol > ::iterator  &it, int toright)
-{
-	if (it == G_Best_Rsol_Items.end()) return -1;
-	int minimo = (*it).Y();
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it).plateId() != (*it).plateId()) //different plate
-			return minimo;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return minimo;
-		if ((*it2).y() < minimo)
-			minimo = (*it2).y();
-
-
-	}
-	return minimo;
-}
-bool   Glass::NotOther(std::list< GlassRsol > ::iterator  &it, int fin, int inicio, int toright)
-{
-	if (it == G_Best_Rsol_Items.end()) return true;
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it2).plateId() != (*it).plateId()) //different plate
-			return true;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return true;
-		if ((*it2).y() < fin && (*it2).Y()>inicio) //not in the horizontal strip
-			return false;
-
-	}
-	return true;
-
-}
-int  Glass::TallestInTheStrip(std::list< GlassRsol > ::iterator  &it, int toright)
-{
-	if (it == G_Best_Rsol_Items.end()) return (*it).Y();
-	int maximo = (*it).Y();
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it2).plateId() != (*it).plateId()) //different plate
-			return maximo;
-		if ((*it2).X() > toright || (*it2).x() < (*it).X()) //not in the horizontal strip
-			return maximo;
-		if ((*it2).y() >= (*it).Y() && NotOther(it, (*it).Y(), (*it2).y(), toright) == false) //not in the horizontal strip
-			return (*it2).Y();
-		if ((*it2).y() > (*it).y() && (*it2).y() <(*it).Y())
-			return (*it2).Y();
-		if ((*it2).Y() >= maximo)
-			maximo = (*it2).Y();
-
-	}
-	return maximo;
-}
-
-int  Glass::BottomInTheStripNext(std::list< GlassRsol > ::iterator  &it, int toright)
-{
-	if (it == G_Best_Rsol_Items.end()) return plate_h;
-	int minimo = plate_h;
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it2).plateId() != (*it).plateId()) //different plate
-			return minimo;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return minimo;
-		if ((*it2).y() >= (*it).Y() && NotOther(it, (*it).Y(), (*it2).y(), toright) == true)
-		{
-			if ((*it2).y() < minimo)
-				minimo = (*it2).y();
-		}
-		//	if ((*it2).Getcut()<=2 && (*it2).y() >= (*it).Y() && NotOther(it, (*it).Y(), (*it2).y(), toright) == true) //not in the horizontal strip
-		//	return (*it2).y();
-
-	}
-	return minimo;
-}
-int  Glass::NothingUp(std::list< GlassRsol > ::iterator  &it, int toright)
-{
-	if (it == G_Best_Rsol_Items.end()) return -1;
-	int maximo = -1;
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it2).plateId() != (*it).plateId()) //different plate
-			return maximo;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return maximo;
-		if ((*it2).y() >= (*it).Y())
-			return (*it2).y();
-
-	}
-	return maximo;
-}
-int  Glass::NothingUp(std::list< GlassRsol > ::iterator  &it, int toright, int totop)
-{
-	if (it == G_Best_Rsol_Items.end()) return -1;
-	int maximo = -1;
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it2).plateId() != (*it).plateId()) //different plate
-			return maximo;
-		if ((*it2).y() >= totop)
-			return maximo;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return maximo;
-		if ((*it2).y() >= (*it).Y())
-			return (*it2).y();
-
-	}
-	return maximo;
-}
-//NothingLeft(it, from_vertical_strip) == true)
-//Look up into the list an item down of this
-bool Glass::NothingLeft(std::list< GlassRsol > ::iterator  &it, int min)
-{
-	if (it == G_Best_Rsol_Items.begin()) return true;
-	bool nada = true;
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2--;
-	for (; ; it2--)
-	{
-
-		//if starts above it
-		if (((*it).plateId() != (*it).plateId()) || ((*it2).x() < min) || ((*it2).X() > (*it).x()) || ((*it2).y() >= (*it).Y()) || ((*it2).Y() <= (*it).y()))
-		{
-			if (it2 == G_Best_Rsol_Items.begin())
-				return nada;
-			continue;
-		}
-
-		return false;
-	}
-	return true;
-}
-bool Glass::NoItemBetweenTallMin(std::list< GlassRsol > ::iterator  &it, int toright, int tall)
-{
-	if (it == G_Best_Rsol_Items.end()) return true;
-
-
-
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it2).plateId() != (*it).plateId()) //different plate
-			return true;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return true;
-		if ((*it2).y() > tall && (*it2).y() < tall + waste_min)
-			return false;
-	}
-	return true;
-}
-int  Glass::NextRightTop(std::list< GlassRsol > ::iterator  &it, int toright)
-{
-	if (it == G_Best_Rsol_Items.end()) return -1;
-	int maximo = (*it).y();
-	std::list< GlassRsol > ::iterator  it2;
-	it2 = it;
-	it2++;
-	for (; it2 != G_Best_Rsol_Items.end(); it2++)
-	{
-		if ((*it).plateId() != (*it2).plateId()) //different plate
-			return maximo;
-		if ((*it2).x() < (*it).X())
-			return maximo;
-		if ((*it2).X() > toright) //not in the horizontal strip
-			return maximo;
-		if ((*it2).Y() > maximo)
-			maximo = (*it2).Y();
-
-
-	}
-	return maximo;
 }

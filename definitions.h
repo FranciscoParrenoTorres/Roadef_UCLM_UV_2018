@@ -1,6 +1,9 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
+
+//#define RAND_MAX ((1U << 31) - 1)
+
 //#include <stdint-gcc.h>
 //lectura y escritura
 #include <stdint.h>
@@ -31,12 +34,7 @@
 
 
                   
-
-using namespace std;
-
-#define get_aleatorio(min, max) ((rand() % (int)(((max)+1) - (min))) + (min))
-
-
+#define RAND_MAX ((1U << 31) - 1)
 
 
 

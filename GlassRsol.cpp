@@ -13,9 +13,9 @@ GlassRsol::GlassRsol()
 	parent = 0;
 	successor_nbr = 0;
 }
-GlassRsol::GlassRsol(unsigned int plate, unsigned int Rsol, unsigned int x,
-	unsigned int y, unsigned int w, unsigned int h,
-	int t, unsigned int c, unsigned int p)
+GlassRsol::GlassRsol(int  plate, int  Rsol, int  x,
+	int  y, int  w, int  h,
+	int t, int  c, int  p)
 {
 	_plateId = plate;
 	_id = Rsol;
@@ -29,9 +29,9 @@ GlassRsol::GlassRsol(unsigned int plate, unsigned int Rsol, unsigned int x,
 	successor_nbr = 0;
 }
 
-GlassRsol::GlassRsol(unsigned int plate, unsigned int Rsol, unsigned int x,
-	unsigned int y, unsigned int w, unsigned int h,
-	int t, unsigned int c)
+GlassRsol::GlassRsol(int  plate, int  Rsol, int  x,
+	int  y, int  w, int  h,
+	int t, int  c)
 {
 	{
 		_plateId = plate;

@@ -2,9 +2,9 @@
 
 void Glass::statistics(void)
 {
-	unsigned int i;
-	unsigned int min = MAXIMUM_INT, min_area = MAXIMUM_INT, sum_area = 0;
-	unsigned int max = 0, max_area = 0;
+	int  i;
+	int  min = MAXIMUM_INT, min_area = MAXIMUM_INT, sum_area = 0;
+	int  max = 0, max_area = 0;
 	for (i = 0; i <batch_items; i++)
 	{
 		if (items[i].Getitem_h() < min)
@@ -284,7 +284,7 @@ int Glass::verify_main(void)
 * totalGeoLoss and widthResidual attributes value
 **/
 void Glass::statisticsLog(void) {
-	unsigned int i;
+	int  i;
 	double waste, total_waste_percentage = 0.0;
 	string temp;
 	total_waste = 0.0;
@@ -383,13 +383,13 @@ void Glass::displayPlatesAreaUsage(void) {
 	double waste = 0.0;
 	double total_useful_percentage = 0.0;
 	double total_waste_percentage = 0.0;
-	unsigned int all_plates_area = 0;
+	int  all_plates_area = 0;
 	double residual_percentage = 0.0;
 	if (active_log)
 		// log_file << endl << "\t--- Display Plates Area Usage ---" << endl;
 //	else
 		cout << endl << "\t--- Display Plates Area Usage ---" << endl;
-	unsigned int i;
+	int  i;
 	total_waste = 0, total_useful = 0;
 	if (active_log) {
 		if (constraint_error) {
@@ -488,7 +488,7 @@ void Glass::verifyItemProduction(void) {
 //		// log_file << "\n\t--- Item production constraint verification ---" << endl;
 //	else
 		cout << endl << "\t--- Item production constraint verification ---" << endl;
-	unsigned int i, j, nbr = 0;
+	int  i, j, nbr = 0;
 	// Loop on batch parsed items.
 	for (i = 0; i < batch_items; i++) {
 		nbr = 0;
@@ -500,7 +500,8 @@ void Glass::verifyItemProduction(void) {
 		}
 		// If batch item is found more than one time, the item is declared duplicated.
 		if (nbr > 1) {
-			if (active_log) {
+			constraint_error |= ITEM_PRODUCTION_ERROR_MASK;
+			if (active_log_error) {
 //				// log_file << "\tERROR -- Item " << items[i].Getitem_id() << ": is duplicated" << endl;
 	//			constraint_error |= ITEM_PRODUCTION_ERROR_MASK;
 	//		}
@@ -511,7 +512,8 @@ void Glass::verifyItemProduction(void) {
 		}
 		// If batch item is not found at all, the item is declared as not produced.
 		if (nbr == 0) {
-			if (active_log) {
+			constraint_error |= ITEM_PRODUCTION_ERROR_MASK;
+			if (active_log_error) {
 //				// log_file << "\tERROR -- Item " << items[i].Getitem_id() << ": is not produced" << endl;
 	//			constraint_error |= ITEM_PRODUCTION_ERROR_MASK;
 		//	}
@@ -548,24 +550,24 @@ void Glass::verifyItemProduction(void) {
 * @param n, node to start on
 * @return number of overlap
 */
-unsigned int Glass::explore(GlassNode n) {
-	unsigned int d = 0;
+int  Glass::explore(GlassNode n) {
+	int  d = 0;
 
 	//Get node info
-	unsigned int node_x = n.x();
-	unsigned int node_y = n.y();
-	unsigned int node_width = n.w();
-	unsigned int node_height = n.h();
-	unsigned int plate_id = n.plateId();
+	int  node_x = n.x();
+	int  node_y = n.y();
+	int  node_width = n.w();
+	int  node_height = n.h();
+	int  plate_id = n.plateId();
 
 	//If the node has no successor, it is a waste, an item or a residual
 	if (n.Getsuccessor_nbr() == 0) {
-		for (unsigned int j = 0; j < plate[plate_id].Getdefect_nbr(); ++j) {
+		for (int  j = 0; j < plate[plate_id].Getdefect_nbr(); ++j) {
 			//Get defect info
-			unsigned int defect_x = plate[plate_id].Getdefect(j).Getpos_x();
-			unsigned int defect_y = plate[plate_id].Getdefect(j).Getpos_y();
-			unsigned int defect_width = plate[plate_id].Getdefect(j).Getwidth();
-			unsigned int defect_height = plate[plate_id].Getdefect(j).Getheight();
+			int  defect_x = plate[plate_id].Getdefect(j).Getpos_x();
+			int  defect_y = plate[plate_id].Getdefect(j).Getpos_y();
+			int  defect_width = plate[plate_id].Getdefect(j).Getwidth();
+			int  defect_height = plate[plate_id].Getdefect(j).Getheight();
 
 			//If the defect fits into the plate
 			if ((node_x < defect_x + defect_width) && (defect_x < node_x + node_width) && (node_y < defect_y + defect_height) && (defect_y < node_y + node_height)) {
@@ -574,6 +576,7 @@ unsigned int Glass::explore(GlassNode n) {
 
 				//If the defect does not fit in the plate, a cut is made through this defect
 				if (!(node_x <= defect_x && defect_x + defect_width <= node_x + node_width && node_y <= defect_y && defect_y + defect_height <= node_y + node_height)) {
+					constraint_error |= DEFECTS_SUPERPOSING_ERROR_MASK;
 					if (active_log) {
 						// log_file << "\tERROR -- " << plate[plate_id].Getdefect(j).Getdefect_id() << " does not fit entirely in " << n << endl;
 						constraint_error |= DEFECTS_SUPERPOSING_ERROR_MASK;
@@ -585,7 +588,7 @@ unsigned int Glass::explore(GlassNode n) {
 		}
 	}
 	else
-		for (unsigned int i = 0; i < n.Getsuccessor_nbr(); ++i)
+		for (int  i = 0; i < n.Getsuccessor_nbr(); ++i)
 			d += explore(n.Getsuccessor(i));
 	return d;
 }
@@ -595,35 +598,37 @@ unsigned int Glass::explore(GlassNode n) {
 * given in defects csv file.
 **/
 void Glass::verifyDefects(void) {
-	unsigned int error = 0;
+	int  error = 0;
 	if (active_log)
 //		// log_file << endl << "\t--- Superposing with defects constraint verification ---" << endl;
 //	else
 		cout << endl << "\t--- Superposing with defects constraint verification ---" << endl;
-	unsigned int i, j, plate_id;
+	int  i, j, plate_id;
 
 	//Defect and node coordinates and dimensions
-	unsigned int defect_width, defect_height, defect_x, defect_y;
-	unsigned int node_x, node_y, node_width, node_height;
+	int  defect_width, defect_height, defect_x, defect_y;
+	int  node_x, node_y, node_width, node_height;
 
-	//For all plates
+	//For all plates in which a cut is performed
 	for (i = 0; i < plates_nbr; ++i) {
-		unsigned int nb_overlap = 0;
+		if (plate[i].Getsuccessor_nbr() > 0) {
+			int  nb_overlap = 0;
 
-		//Recursively explore cutting tree attached to this plate
-		for (unsigned int j = 0; j < plate[i].Getsuccessor_nbr(); j++)
-			nb_overlap += explore(plate[i].Getsuccessor(j));
+			//Recursively explore cutting tree attached to this plate
+			for (int  j = 0; j < plate[i].Getsuccessor_nbr(); j++)
+				nb_overlap += explore(plate[i].Getsuccessor(j));
 
-		//If there is extra overlaps, this implies that a cut is made through a defect
-		if (plate[i].Getdefect_nbr() > 0 && nb_overlap != plate[i].Getdefect_nbr()) {
-			error = 1;
-			if (active_log) 
-//			{
-//				// log_file << "\tERROR -- It seems that a cut is made through a defect" << endl;
-//				constraint_error |= DEFECTS_SUPERPOSING_ERROR_MASK;
-//			}
-//			else
-				cout << "\tERROR -- It seems that a cut is made through a defect" << endl;
+			//If there is extra overlaps, this implies that a cut is made through a defect
+			if (plate[i].Getdefect_nbr() > 0 && nb_overlap != plate[i].Getdefect_nbr()) {
+				error = 1;
+				constraint_error |= DEFECTS_SUPERPOSING_ERROR_MASK;
+				if (active_log_error) {
+					cout << "\tERROR -- It seems that a cut is made through a defect for plate: " << i << endl;
+					constraint_error |= DEFECTS_SUPERPOSING_ERROR_MASK;
+				}
+				else
+					cout << "\tERROR -- It seems that a cut is made through a defect for plate: " << i << endl;
+			}
 		}
 	}
 
@@ -649,15 +654,16 @@ void Glass::verifyDefects(void) {
 			//Test if one or more defect ends are inside the solution useful node area
 			if ((node_x < defect_x + defect_width) && (defect_x < node_x + node_width) && (node_y < defect_y + defect_height) && (defect_y < node_y + node_height)) {
 				error = 1;
-/*				if (active_log) {
-					// log_file << "\tERROR -- Node " << sol_items[i].id() << ": (type: item, item_id: " << sol_items[i].nodeType() << ", x: " << node_x << ", y: " << node_y << ", width: " << node_width << ", height: " << node_height
+				constraint_error |= DEFECTS_SUPERPOSING_ERROR_MASK;
+				if (active_log_error) {
+					cout << "\tERROR -- Node " << sol_items[i].id() << ": (type: item, item_id: " << sol_items[i].nodeType() << ", x: " << node_x << ", y: " << node_y << ", width: " << node_width << ", height: " << node_height
 						<< ") superposes defect " << plate[sol_items[i].plateId()].Getdefect(j).Getdefect_id() << ": (x: " << defect_x << ", y: " << defect_y << ", width: " << defect_width << ", height: " << defect_height << ")" << endl;
 					constraint_error |= DEFECTS_SUPERPOSING_ERROR_MASK;
 				}
-				else {*/
-				if (active_log_error) cout << "\tERROR -- Node " << sol_items[i].id() << ": (type: item, item_id: " << sol_items[i].nodeType() << ", x: " << node_x << ", y: " << node_y << ", width: " << node_width << ", height: " << node_height
+				else {
+					cout << "\tERROR -- Node " << sol_items[i].id() << ": (type: item, item_id: " << sol_items[i].nodeType() << ", x: " << node_x << ", y: " << node_y << ", width: " << node_width << ", height: " << node_height
 						<< ") superposes defect " << plate[sol_items[i].plateId()].Getdefect(j).Getdefect_id() << ": (x: " << defect_x << ", y: " << defect_y << ", width: " << defect_width << ", height: " << defect_height << ")" << endl;
-//				}
+				}
 			}
 		}
 	}
@@ -684,7 +690,7 @@ void Glass::verifyDimensions(void) {
 /*		// log_file << endl << "\t--- Dimensions constraint verification ---" << endl;
 	else*/
 		cout << endl << "\t--- Dimensions constraint verification ---" << endl;
-	unsigned int i, j, height, width, x, y, cut, c_nbr;
+	int  i, j, height, width, x, y, cut, c_nbr;
 	int type;
 	//
 	success = 1;
@@ -702,7 +708,7 @@ void Glass::verifyDimensions(void) {
 			cut = plate[i].Getsuccessor(j).Getcut();
 			// If node cut stage do not equal parent.cut + 1.
 			if (cut != plate[i].Getcut() + 1) {
-				if (active_log)
+				if (active_log_error)
 /*					// log_file << "\tERROR -- Node " << plate[i].Getsuccessor(j).id() << ": (type: branch, width: " << width << ", height: " << height << ") has node.cut != plate.cut + 1 (plate.node_id: " << plate[i].Getnode_id() << ")" << endl;
 				else*/
 					cout << "\tERROR -- Node " << plate[i].Getsuccessor(j).id() << ": (type: branch, width: " << width << ", height: " << height << ") has node.cut != plate.cut + 1 (plate.node_id: " << plate[i].Getnode_id() << ")" << endl;
@@ -712,7 +718,7 @@ void Glass::verifyDimensions(void) {
 			if (type == -2) {
 				// verifies width is not < min1Cut optimization parameter.
 				if (width < min1Cut) {
-					if (active_log)
+					if (active_log_error)
 /*						// log_file << "\tERROR -- Node " << plate[i].Getsuccessor(j).id() << ": (type: branch, width: " << width << ", height: " << height << ") has node.width less than " << min1Cut << endl;
 					else*/
 						cout << "\tERROR -- Node " << plate[i].Getsuccessor(j).id() << ": (type: branch, width: " << width << ", height: " << height << ") has node.width less than " << min1Cut << endl;
@@ -829,7 +835,7 @@ void Glass::verifyDimensions(void) {
 * This function is recursive, it verifies dimensions constraint of node successors.
 **/
 void Glass::checkSuccDimensions(GlassNode parent) {
-	unsigned int j, height, width, x, y, cut, c_nbr;
+	int  j, height, width, x, y, cut, c_nbr;
 	int type;
 	// Get node successors number (G_children).
 	c_nbr = parent.Getsuccessor_nbr();
@@ -1001,7 +1007,7 @@ void Glass::verifyIdt_Sequence(void) {
 /*		// log_file << endl << "\t--- Sequence & Identity constraints verification ---" << endl;
 	else*/
 		cout << endl << "\t--- Sequence & Identity constraints verification ---" << endl;
-	unsigned int i, j, sol_width, sol_height, batch_width, batch_height, fnd_stck = 0, idtty_error = 0;
+	int  i, j, sol_width, sol_height, batch_width, batch_height, fnd_stck = 0, idtty_error = 0;
 	int curItemIdx;
 	// Verify that no Item production errors occured.
 	if ((constraint_error & ITEM_PRODUCTION_ERROR_MASK) >> ITEM_PRODUCTION_ERROR_OFFSET) {
@@ -1145,7 +1151,7 @@ inline bool isNegativeOrNull(const int& value) {
 * path: input / path to optimization parameters file.
 **/
 int Glass::parseOptimizationParams(string path) {
-	unsigned int i = 0;
+	int  i = 0;
 	string value, temp, token[OPT_PARAM_RAWS_LENGTH];
 	ifstream filess(path.c_str());
 	if (!filess.is_open()) {
@@ -1207,8 +1213,8 @@ int Glass::parseOptimizationParams(string path) {
 **/
 int Glass::parseDefects(string path) {
 	GlassDefect defect;
-	//   unsigned int plate_defect [plates_nbr][2];
-	unsigned int i, k, s = 0, defects_on_used_plats = 0;
+	//   int  plate_defect [plates_nbr][2];
+	int  i, k, s = 0, defects_on_used_plats = 0;
 	string token[DEFECTS_COL_LENGTH], temp;
 	string value;
 	ifstream filess(path.c_str());
@@ -1248,6 +1254,7 @@ int Glass::parseDefects(string path) {
 		// Compute defects on used plates.
 		defects_on_used_plats += plate_defect[i][1];
 	}
+	Total_defects = max(defects_on_used_plats,defects_nbr);
 	if (active_log) cout << "\tDefects: " << defects_nbr << endl << "\tDefects on used plates: " << defects_on_used_plats << endl;
 	// log_file << "\tDefects: " << defects_nbr << endl << "\tDefects on used plates: " << defects_on_used_plats << endl;
 	filess.clear();
@@ -1282,6 +1289,7 @@ int Glass::parseDefects(string path) {
 				atoi(token[DEFECTS_WIDTH_COL].c_str()),
 				atoi(token[DEFECTS_HEIGHT_COL].c_str()));
 			DefectsPlate[d.Getplate_id()].push_back(d);
+			Total_area_defects += d.Getwidth()*d.Getheight();
 		}
 		if (token[DEFECTS_DEFECT_ID_COL].size() && (atoi(token[DEFECTS_PLATE_ID_COL].c_str()) < plates_nbr)) {
 			// Create defect with parsed parameters.
@@ -1302,6 +1310,7 @@ int Glass::parseDefects(string path) {
 
 			// Add defect to respective plate.
 			plate[atoi(token[DEFECTS_PLATE_ID_COL].c_str())].Setdefect(d);
+			Total_area_defects += d.Getwidth()*d.Getheight();
 		}
 		//change from the original
 		/*else {
@@ -1330,7 +1339,7 @@ int Glass::parseDefects(string path) {
 * path: input / path to batch file.
 **/
 int Glass::parseBatch(string path) {
-	unsigned int j, i, k, p = 0, s = 0;
+	int  j, i, k, p = 0, s = 0;
 	int n = -1, first = 0, init = 0;
 	string token[BATCH_COL_LENGTH], temp;
 	string value;
@@ -1384,6 +1393,132 @@ int Glass::parseBatch(string path) {
 				}
 			}
 		}
+	
+		if (token[BATCH_ITEM_ID_COL].size() && first == 0) {
+			first = 1;
+			if (atoi(token[BATCH_STACK_COL].c_str()) == 0)
+				init = 0;
+			else
+				init = 0;
+		}
+		if (token[BATCH_ITEM_ID_COL].size()) {
+			if (atoi(token[BATCH_STACK_COL].c_str()) > n) {
+				n = atoi(token[BATCH_STACK_COL].c_str());
+				stack_nbr++;
+			}
+			int exit_code = createItem(items, token, p++);
+			if (exit_code == EXIT_FAILURE)
+				return EXIT_FAILURE;
+
+			if (items[p - 1].Getitem_min() < MinDimensionPieza_Inicial)
+				MinDimensionPieza_Inicial = items[p - 1].Getitem_min();
+			if (items[p - 1].Getitem_min() > MaxMinDimensionPieza_Inicial)
+				MaxMinDimensionPieza_Inicial = items[p - 1].Getitem_min();
+
+			Total_area += items[p - 1].Getitem_area();
+		}
+		for (k = 0; k < BATCH_COL_LENGTH; k++) {
+			token[k].clear();
+		}
+		s = 0;
+	}
+
+	//Create stacks
+	stacks = new GlassStack[stack_nbr];
+	if (active_log) cout << "\tStacks: " << stack_nbr << endl;
+	// log_file << "\tStacks: " << stack_nbr << endl;
+	j = 0, k = 0;
+	//Loop on batch's stacks number.
+	for (i = 0; i < stack_nbr; i++) {
+		stacks[i].Setstack_id(i + init);
+		//Compute each stack's items number.
+		for (j = k; j < batch_items; j++) {
+			if (items[j].Getitem_stack() == stacks[i].Getstack_id()) {
+				stacks[i].Increaseitem_nbr();
+			}
+			else {
+				k = j;
+				break;
+			}
+		}
+		//Allocate memory for stacks's items.
+		stacks[i].item = new GlassItem[stacks[i].Getitem_nbr()];
+	}
+	j = 0, k = 0;
+	// Loop on batch's stacks and set each stack's items.
+	for (i = 0; i < stack_nbr; i++) {
+		for (j = k; j < batch_items; j++) {
+			if (items[j].Getitem_stack() == stacks[i].Getstack_id()) {
+				stacks[i].Setitem(items[j]);
+			}
+			else {
+				k = j;
+				break;
+			}
+		}
+	}
+	filess.close();
+	if (active_log) cout << "\t--- Batch file parsed successfully ---" << endl;
+	// log_file << "\t--- Batch file parsed successfully ---" << endl;
+
+	return EXIT_SUCCESS;
+}
+int Glass::parseBatchWithoutStacks(string path) {
+	int  j, i, k, p = 0, s = 0;
+	int n = -1, first = 0, init = 0;
+	string token[BATCH_COL_LENGTH], temp;
+	string value;
+	ifstream filess(path.c_str());
+	if (!filess.is_open()) {
+		opened_file = false;
+		cout << endl << "\t--- Unable to Open Batch file / file not found ---" << endl << "\tBatch file path: " << path << endl;
+		// log_file << endl << "\t--- Unable to Open Batch file / file not found ---" << endl << "\tBatch file path: " << path << endl;
+		cout << "\t--- Batch file not parsed ---" << endl;
+		// log_file << "\t--- Batch file not parsed ---" << endl;
+		return EXIT_FAILURE;
+	}
+	if (active_log) cout << endl << "\t--- Parsing Batch file ---" << endl << "\tBatch file path: " << path << endl;
+	// log_file << endl << "\t--- Parsing Batch file ---" << endl << "\tBatch file path: " << path << endl;
+
+	//Skip first line
+	safeGetline(filess, value);
+	while (filess.good()) {
+		safeGetline(filess, value);
+		temp = value.substr(0, value.find(';'));
+		if (temp.size())
+			batch_items++;
+	}
+	items = new GlassItem[batch_items];
+	if (active_log) cout << "\tItems: " << batch_items << endl;
+	// log_file << "\tItems: " << batch_items << endl;
+
+	//Restart at beginning of file
+	filess.clear();
+	filess.seekg(0, filess.beg);
+
+	//Skip first line
+	safeGetline(filess, value);
+	while (filess.good()) {
+		safeGetline(filess, value);
+		// Loop on value string to split batch column tokens.
+		for (i = 0; i < value.size();) {
+			for (k = i; k < value.size(); k++) {
+				if (value[k] == ';') {
+					i = k + 1;
+					s = (s + 1) % 5;
+					break;
+				}
+				else if ((k == (value.size() - 1)) && (s == 4)) {
+					token[s].append(value, k, 1);
+					i = k + 1;
+					break;
+				}
+				else {
+					token[s].append(value, k, 1);
+				}
+			}
+		}
+		token[BATCH_STACK_COL] = token[BATCH_ITEM_ID_COL];
 		if (token[BATCH_ITEM_ID_COL].size() && first == 0) {
 			first = 1;
 			if (atoi(token[BATCH_STACK_COL].c_str()) == 0)
@@ -1455,7 +1590,7 @@ int Glass::parseBatch(string path) {
 }
 void Glass::parseBatchJointItems(string path)
 {
-	unsigned int j, i, k, p = 0, s = 0;
+	int  j, i, k, p = 0, s = 0;
 	int n = -1, first = 0, init = 0;
 	string token[BATCH_COL_LENGTH], temp;
 	string value;
@@ -1610,7 +1745,7 @@ int Glass::parseSolution(string path) {
 		plates_list[i][0] = 0;
 		plates_list[i][1] = 0;
 	}
-	//	unsigned int plates_list[PLATES_NBR_LIMIT][2];
+	//	int  plates_list[PLATES_NBR_LIMIT][2];
 	s_idx = 0;
 	lines_nbr = 0; // csv file lines number.
 	node_nbr = 0; // Solution file nodes number.
@@ -1628,9 +1763,9 @@ int Glass::parseSolution(string path) {
 	max_cut_stage = 0; // Solution max used cut stage.
 
 
-	unsigned int i, k, s = 0, n = 0;
+	int  i, k, s = 0, n = 0;
 	int p = 0;
-	unsigned int plate_id = 0;
+	int  plate_id = 0;
 	ifstream filess(path.c_str());
 	if (!filess.is_open()) {
 		opened_file = false;
@@ -1780,7 +1915,7 @@ int Glass::parseSolution(string path) {
 	if (active_log) cout << "\tNodes: " << (lines_nbr - 1);
 //	// log_file << "\tNodes: " << (lines_nbr - 1);
 	filess.close();
-	if (active_log)	cout << endl;
+//	if (active_log)	cout << endl;
 	//// log_file << endl;
 	if (active_log)	cout << "\tbranches: " << branch_node + plates_nbr << endl << "\tItems: " << useful_node << endl << "\tResiduals: " << residual_node;
 //	// log_file << "\tbranches: " << branch_node << endl << "\tItems: " << useful_node << endl << "\tResiduals: " << residual_node;
@@ -1798,7 +1933,7 @@ int Glass::parseSolution(string path) {
 	//	// log_file << " (ERROR: Solution Algorithm has " << max_cut_stage << " cut stages, while the max is 4 stages)" << endl;
 		constraint_error |= PARSE_ERROR_MASK;
 	}
-	cout << endl; // << " waste: " << node_nbr - (useful_node + branch_node) << endl;
+//	cout << endl; // << " waste: " << node_nbr - (useful_node + branch_node) << endl;
 	// log_file << endl;
 	if (constraint_error > 0) {
 	if (active_log_error)	cout << "\tTree structure built" << endl;
@@ -1831,9 +1966,9 @@ int Glass::parseSolution(string path) {
 * node: input / all solution nodes as a GlassNode array.
 **/
 void Glass::buildDataStructure(GlassNode * node) {
-	unsigned int i, j, index = 0;
+	int  i, j, index = 0;
 	int waste = 0.0, useful = 0.0;
-	unsigned int c_nbr; // maintains plate[i] nodes number.
+	int  c_nbr; // maintains plate[i] nodes number.
 	sol_items = new GlassNode[useful_node];
 	// Loop on plates list.
 	for (i = 0; i < plates_nbr; i++) {
