@@ -22,3 +22,6 @@ For the challenge:
 #SBATCH --cpus-per-task=4 export 
 OMP_NUM_THREADS=8 
 ./challengeSG -p instancias_A_New/A1 -name 1 -s 2 -t 360 -o instancias_A_New/A1solution_360.txt > ./output1.log 
+
+
+In the version 2, is the source corrected (there were two small mistakes) and the makefile that works in parallel. With the makefile in the branch of the master, the algorithm runs sequential. With the makefile of the version 2 it works Perfect.
