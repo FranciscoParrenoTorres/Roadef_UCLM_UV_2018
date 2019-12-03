@@ -3219,6 +3219,7 @@ bool Glass::BetterSolution(int a)
 
 				if (parseSolution(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv") != EXIT_FAILURE)
 				{
+					parseDefects(file_idx + "_defects.csv");
 					if (verify_main() != EXIT_SUCCESS)
 					{
 						//					WriteSolution();
@@ -3280,6 +3281,7 @@ bool Glass::BetterSolution(int a)
 
 				if (parseSolution(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv") != EXIT_FAILURE)
 				{
+					parseDefects(file_idx + "_defects.csv");
 					if (verify_main() != EXIT_SUCCESS)
 					{
 //						WriteSolution();
@@ -3351,6 +3353,7 @@ bool Glass::BetterSolution(int a)
 
 				if (parseSolution(file_idx + "_solution_" + std::to_string(m_id) + "_" + std::to_string(Aleatorio) + "_" + std::to_string(G_Time) + ".csv") != EXIT_FAILURE)
 				{
+					parseDefects(file_idx + "_defects.csv");
 					if (verify_main() != EXIT_SUCCESS)
 
 
